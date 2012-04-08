@@ -1,0 +1,57 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+#
+# This file is part of box-linux-sync.
+#
+# Copyright (C) 2012 Vítor Brandão <noisebleed@noiselabs.org>
+#
+# box-linux-sync is free software; you can redistribute it  and/or modify it
+# under the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your option)
+# any later version.
+#
+# box-linux-sync is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with box-linux-sync; if not, see
+# <http://www.gnu.org/licenses/>.
+
+import signal
+import sys
+# This block ensures that ^C interrupts are handled quietly.
+try:
+
+    def exithandler(signum,frame):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        sys.exit(128 + signum)
+
+    signal.signal(signal.SIGINT, exithandler)
+    signal.signal(signal.SIGTERM, exithandler)
+    # Prevent "[Errno 32] Broken pipe" exceptions when
+    # writing to a pipe.
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+except KeyboardInterrupt:
+    sys.exit(128 + signal.SIGINT)
+
+def debug_signal(signum, frame):
+    import pdb
+    pdb.set_trace()
+signal.signal(signal.SIGUSR1, debug_signal)
+
+try:
+    from noiselabs.box.main import box_main
+except ImportError:
+    from os import path as osp
+    sys.path.insert(0, osp.join(osp.dirname(osp.dirname(osp.realpath(__file__))), "src"))
+    from noiselabs.box.main import box_main
+    
+if __name__ == "__main__":
+    import sys
+    retval = box_main()
+    sys.exit(retval)
+    

@@ -19,8 +19,15 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-__title__ = 'box-linux-sync'
-__version__ = '0.1.0'
-__author__ = 'Vítor Brandão'
-__license__ = 'LGPL-3'
-__copyright__ = 'Copyright 2012 Vítor Brandão'
+import optparse
+import sys
+from noiselabs.box import __version__
+
+def box_main():
+    
+    description = "Box.com command-line interface"
+    usage = "Usage: box-sync <command>"
+    parser = optparse.OptionParser(usage=usage, prog="box-sync", 
+    description=description, version=__version__)
+    
+    opts, pargs = parser.parse_args(args=sys.argv[1:])
