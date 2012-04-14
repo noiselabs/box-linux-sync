@@ -19,9 +19,19 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-__title__ = 'box-linux-sync'
-__prog__ = 'box-sync'
-__version__ = '0.1.0'
-__author__ = 'Vítor Brandão'
-__license__ = 'LGPL-3'
-__copyright__ = 'Copyright 2012 Vítor Brandão'
+from noiselabs.box.config import BoxConfig
+
+class BoxSetup(object):
+    """
+    Box setup helper.
+    """
+    def __init__(self):
+        self.config = BoxConfig()
+    
+    def check(self):
+        self.config.check_file()
+        self.config.check_config()
+    
+    def wizard(self):
+        pass
+    
