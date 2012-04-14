@@ -20,11 +20,14 @@
 # <http://www.gnu.org/licenses/>.
 
 import curses
+import logging
 import os
 import time
 import sys
 import types
-from os.path import basename
+from noiselabs.box.config import BASEDIR
+from noiselabs.box.utils import create_file
+from noiselabs.box.ansistrm import ColorizingStreamHandler
 
 ################################################################################
 ##
@@ -32,10 +35,13 @@ from os.path import basename
 ##
 ################################################################################
 
+_styles = {}
+"""Maps style class to tuple of attribute names."""
+
 codes = {}
 """Maps attribute name to ansi code."""
 
-esc_seq = '\x1b['
+esc_seq = "\x1b["
 
 codes["normal"]         = esc_seq + "0m"        
 codes['reset']          = esc_seq + "39;49;00m"
@@ -86,190 +92,108 @@ for x in range(len(rgb_ansi_colors)):
     codes[rgb_ansi_colors[x]] = esc_seq + ansi_codes[x]
 del x
 
-# Available colours
 codes["black"]     = codes["0x000000"]
 codes["darkgray"]  = codes["0x555555"]
+
 codes["red"]       = codes["0xFF5555"]
 codes["darkred"]   = codes["0xAA0000"]
+
 codes["green"]     = codes["0x55FF55"]
 codes["darkgreen"] = codes["0x00AA00"]
+
 codes["yellow"]    = codes["0xFFFF55"]
 codes["brown"]     = codes["0xAA5500"]
+
 codes["blue"]      = codes["0x5555FF"]
 codes["darkblue"]  = codes["0x0000AA"]
+
 codes["fuchsia"]   = codes["0xFF55FF"]
 codes["purple"]    = codes["0xAA00AA"]
+
 codes["turquoise"] = codes["0x55FFFF"]
 codes["teal"]      = codes["0x00AAAA"]
+
 codes["white"]     = codes["0xFFFFFF"]
 codes["lightgray"] = codes["0xAAAAAA"]
+
 codes["darkteal"]   = codes["turquoise"]
 # Some terminals have darkyellow instead of brown.
 codes["0xAAAA00"]   = codes["brown"]
 codes["darkyellow"] = codes["0xAAAA00"]
 
+# Colors from /etc/init.d/functions.sh
+_styles["NORMAL"]     = ( "normal", )
+_styles["GOOD"]       = ( "green", )
+_styles["WARN"]       = ( "yellow", )
+_styles["BAD"]        = ( "red", )
+_styles["HILITE"]     = ( "teal", )
+_styles["BRACKET"]    = ( "blue", )
 
-class CommandLineInterface():
-    """ 
-    Performs fancy terminal formatting for status and informational messages.
-    """ 
-    
-    def __init__(self, colours=True):
-        self.use_colour = colours
-        self.cols = 0
-        self.rows, self.cols = self.get_console_size()
+def style_to_ansi_code(style):
+    """
+    @param style: A style name
+    @type style: String
+    @rtype: String
+    @return: A string containing one or more ansi escape codes that are
+        used to render the given style.
+    """
+    ret = ""
+    for attr_name in _styles[style]:
+        # allow stuff that has found it's way through ansi_code_pattern
+        ret += codes.get(attr_name, attr_name)
+    return ret
 
-    def _write(self, message='', endl=False, rewrite=False, subl=0, bullet=True, bullet_symbol='*', bullet_color=False, text_color=False):
-        if rewrite:
-            sys.stdout.write("\r")
-        indentation = ' ' * 2 * subl
-        if type(message) not in types.StringTypes:
-            message = str(message)
-        for i in message.split('\n'):
-            if bullet:
-                if bullet_color:
-                    sys.stdout.write(indentation + self.colourize("%s " % bullet_symbol, bullet_color))
-                else:
-                    sys.stdout.write(indentation + bullet_symbol + ' ')
-            if text_color:
-                sys.stdout.write(self.colourize(i, text_color))
-            else:
-                sys.stdout.write(i)
-            if endl:
-                sys.stdout.write("\n")
-            sys.stdout.flush()
-
-    def clear_line(self):
-        sys.stdout.write("\r" + ' '*self.cols + "\r")
-        sys.stdout.flush()
-   
-    # Helper functions
-    def colourize(self, text, colour):
-        if self.use_colour:
-            return codes[colour] + text + codes['reset']
+def colorize(color_key, text):
+    if color_key in codes:
+        return codes[color_key] + text + codes["reset"]
+    elif color_key in _styles:
+        return style_to_ansi_code(color_key) + text + codes["reset"]
+    else:
         return text
-   
-    def noColour(self):
-        "Turn off colourization"
-        self.use_colours = False
-   
-    # Output functions 
-    def notice(self, message):
-        print message
-    
-    def info(self, message, subl=0, bullet_symbol="*", color="green", rewrite=False):
-        if rewrite:
-            sys.stdout.write("\r")
-        indentation = " " * 2 * subl
-        if type(message) not in types.StringTypes:
-            message = str(message)
-            
-        for i in message.split('\n'):
-            if not color: 
-                print indentation + bullet_symbol + " " + message
-            else:
-                print indentation + self.colourize('%s ' % bullet_symbol, color) + i
-    
-    def status(self, message, bullet=True, endl=True, subl=0, bullet_symbol="*", rewrite=False):
-        if rewrite:
-            sys.stdout.write("\r")
-        indentation = " " * 2 * subl
-        if type(message) not in types.StringTypes:
-            message = str(message)
-        for i in message.split('\n'):
-            if bullet:
-                sys.stdout.write(indentation + self.colourize("%s " % bullet_symbol, "green"))
-            sys.stdout.write(i)
-            if endl:
-                sys.stdout.write("\n")
-            sys.stdout.flush()
-    
-    def item(self, message='', endl=True, rewrite=False, subl=1, bullet=True,
-             bullet_symbol='-', bullet_color=False, text_color=False):
-        return self._write(message=message, endl=endl, rewrite=rewrite,
-                           subl=subl, bullet=bullet, bullet_symbol=bullet_symbol,
-                           bullet_color=bullet_color, text_color=text_color)
-    
-    def warn(self, message, endl=True, rewrite=False):
-        if rewrite:
-            sys.stdout.write("\r")
-        if type(message) not in types.StringTypes:
-            message = str(message)
-        for i in message.split('\n'):
-            sys.stdout.write(self.colourize('* ', "yellow") + i)
-            if endl:
-                sys.stdout.write("\n")
-            sys.stdout.flush()
-    
-    def error(self, message, endl=True, die=False, subl=0, rewrite=False):
-        if rewrite:
-            sys.stdout.write("\r")
-        indentation = " " * 2 * subl
-        if type(message) not in types.StringTypes:
-            message = str(message)
-        for i in message.split('\n'):
-            sys.stdout.write(indentation + self.colourize('* ', "red") + i)
-            if endl:
-                sys.stdout.write("\n")
-        if die:
-            print indentation + self.colourize('* ', "red") + "/me quits."
-            sys.exit(0)
-    
-    def die(self, message=False, subl=0, rewrite=False):
-        if rewrite:
-            sys.stdout.write("\r")
-        indentation = " " * 2 * subl
-        if message != False:
-            if type(message) not in types.StringTypes:
-                message = str(message)
-            for i in message.split('\n'):
-                print indentation + self.colourize('* ', "red") + i
-        print indentation + self.colourize('* ', "red") + "/me dies."
-        sys.exit(1)
-        
-    def cmd(self, cmd, lf=False):
-        if lf:
-            print ""
-        print ""
-        print ">>> @ "+os.getcwd()
-        print ">>> Executing "+self.colourize(cmd, 'turquoise')
-        print ""
-    
-    def kvp(self, key, value, endl=True, rewrite=False):
-        ''' Key-Value-Pair '''
-        if rewrite:
-            sys.stdout.write("\r")
-            sys.stdout.flush()
-        if type(key) not in types.StringTypes:
-            key = str(key)
-        if type(value) not in types.StringTypes:
-            value = str(value)
-        sys.stdout.write("  - " + self.colourize(key, "teal") + ": " + value)
-        if endl:
-            sys.stdout.write("\n")
 
-    def ask(self, message, options=False):
-        options = ' ['+','.join(options)+']' if options else ''
-        return raw_input(self.colourize('* ', "darkyellow") + message + options+": ")
-    
-    def debug(self, message):
-        print message      
-    
-    def countdown(self, message, seconds=5):
-        CLI.warn(message)
-        CLI.warn("Giving you %d seconds to cancel this: " % seconds, endl=False)
-        i = seconds
-        for j in range(0, i): 
-            sys.stdout.write("%d.. " % (i-j))
-            sys.stdout.flush() 
-            time.sleep(1)
-        print "Go.."
+class BoxConsole():
+    """ 
+    A class that performs fancy terminal formatting for status and informational
+    messages built upon the logging module.
+    """ 
+    def __init__(self, opts, name):
+        self.name = name
+        self.opts = opts
+        self.logger = logging.getLogger(name)
+
+        self.level = logging.DEBUG if self.opts.verbose else logging.INFO
+        self.logger.setLevel(self.level)
+
+        # create console handler
+        ch = ColorizingStreamHandler()
+        ch.setLevel(self.level)
+        # create formatter and add it to the handlers
+        #ch.setFormatter(logging.Formatter('%(message)s'))
+        self.logger.addHandler(ch)
         
-    def get_console_size(self, use_curses=False):
-        if use_curses:
-            rows, cols =  curses.initscr().getmaxyx()
-            curses.endwin()
-        else:
-            rows, cols = os.popen('stty size', 'r').read().split()
-        return int(rows), int(cols)
- 
+        # create file handler
+        if self.opts.log:
+            logfile = os.path.join(BASEDIR, 'box-sync.log')
+            create_file(logfile)
+            fh = logging.FileHandler(logfile)
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s'))
+            self.logger.addHandler(fh)
+
+    def debug(self, msg):
+        self.logger.debug(msg)
+
+    def info(self, msg):
+        self.logger.info(msg)
+
+    def warning(self, msg):
+        self.logger.warning(msg)
+
+    def error(self, msg):
+        self.logger.error(msg)
+
+    def critical(self, msg):
+        self.logger.critical(msg)
+
+    def log(self, lvl, msg):
+        self.logger.log(lvl, msg)

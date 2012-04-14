@@ -22,6 +22,7 @@
 import sys
 from optparse import OptionParser
 from noiselabs.box import __prog__, __version__
+from noiselabs.box.output import BoxConsole
 from noiselabs.box.setup import BoxSetup
 
 class NoiselabsOptionParser(OptionParser):
@@ -31,6 +32,19 @@ class NoiselabsOptionParser(OptionParser):
     """
     def format_epilog(self, formatter):
         return self.epilog
+
+def box_check(box_console):
+    setup = BoxSetup(box_console)
+    setup.check()
+
+def box_setup():
+    pass
+
+def box_pull():
+    pass
+
+def box_push():
+    pass
 
 def box_main(args=None):
     """
@@ -44,23 +58,36 @@ def box_main(args=None):
     prog = __prog__
     version = __version__
     description = "Box.com command-line interface"
+    usage = "Usage: %prog [options] <command>"
+
+    force_help = "forces the execution of every procedure even if the component " +\
+    "is already installed and/or configured"
+    log_help = "log output to ~/.noiselabs/box/box-sync.log"
 
     parser = NoiselabsOptionParser(
-        usage="Usage: %prog [options] <command>",
+        usage=usage,
         prog=prog,
         version=version,
         description=description,
         epilog=
 """
 Commands:
-  help        show this help message and exit
+  check       check box-sync setup and dependencies
   setup       launch a setup wizard
+  help        show this help message and exit
 """
     )
-    
+
+    parser.add_option("-f", "--force", help=force_help, action="store_true",
+        dest="force")
+    parser.add_option("-l", "--log", help=log_help, action="store_true",
+        dest="log")
+    parser.add_option("-v", "--verbose", help="be verbose", action="store_true",
+        dest="verbose")
+
     opts, pargs = parser.parse_args(args=args)
 
-    commands = ['help', 'pull', 'push', 'setup']
+    commands = ['check', 'help', 'pull', 'push', 'setup']
 
     nargs = len(pargs)
     # Parse commands
@@ -74,10 +101,11 @@ Commands:
             parser.print_help()
             sys.exit(0)
 
-    setup = BoxSetup()
-    setup.check()
+    bc = BoxConsole(opts, __prog__)
 
-    if command == 'setup':
+    if command == 'check':
+        box_check(bc)
+    elif command == 'setup':
         setup.wizard()
     elif command == 'pull':
         pass

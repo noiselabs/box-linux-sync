@@ -19,30 +19,23 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from noiselabs.box.config import BoxConfig
+import os
 
-class BoxSetup(object):
+def create_file(filepath, dirmode=0700, filemode=0600):
     """
-    Box setup helper.
+    Creates a new file
     """
-    def __init__(self, box_console):
-        self.config = BoxConfig(box_console)
-        self.out = box_console
-    
-    def check(self):
-        self.check_config()
-        self.check_deps()
-
-    def check_config(self):
-        self.config.check_file()
-        self.config.check_config()
-
-    def check_deps(self):
-        self.check_dep_davfs()
-
-    def check_dep_davfs(self):
-        self.out.debug("Checking davfs installation...")
-
-    def wizard(self):
-        pass
+    if not os.path.isfile(filepath):
+        # if the base dir doesn't exist we need to create it first
+        basedir = os.path.dirname(filepath) 
+        if not os.path.isdir(basedir):
+            os.makedirs(os.path.dirname(filepath), dirmode)
+        # create the file
+        f = open(filepath, 'w+')
+        f.write('')
+        f.close()
+        os.chmod(filepath, filemode)
+        return True
+    else:
+        return False
     
