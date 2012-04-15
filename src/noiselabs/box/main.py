@@ -19,7 +19,9 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
+import subprocess
 import sys
+
 from optparse import OptionParser
 from noiselabs.box import __prog__, __version__
 from noiselabs.box.output import BoxConsole
@@ -32,19 +34,6 @@ class NoiselabsOptionParser(OptionParser):
     """
     def format_epilog(self, formatter):
         return self.epilog
-
-def box_check(box_console):
-    setup = BoxSetup(box_console)
-    setup.check()
-
-def box_setup():
-    pass
-
-def box_pull():
-    pass
-
-def box_push():
-    pass
 
 def box_main(args=None):
     """
@@ -74,8 +63,14 @@ def box_main(args=None):
 Commands:
   check       check box-sync setup and dependencies
   setup       launch a setup wizard
+  start       start sync service
+  stop        stop sync service
   help        show this help message and exit
   uninstall   removes all configuration and cache files installed by box-sync
+
+Workflow:
+  $ box-sync check && box-sync setup
+  $ box-sync start
 """
     )
 
@@ -88,7 +83,7 @@ Commands:
 
     opts, pargs = parser.parse_args(args=args)
 
-    commands = ['check', 'help', 'pull', 'push', 'setup', 'uninstall']
+    commands = ['check', 'help', 'start', 'stop', 'setup', 'uninstall']
 
     nargs = len(pargs)
     # Parse commands
@@ -103,15 +98,27 @@ Commands:
             sys.exit(0)
 
     bc = BoxConsole(opts, __prog__)
+    setup = BoxSetup(bc)
 
     if command == 'check':
-        box_check(bc)
+        setup.check()
     elif command == 'setup':
+        setup.check()
         setup.wizard()
-    elif command == 'pull':
-        pass
-    elif command == 'push':
-        pass
+    elif command == 'start':
+        box_dir = setup.get_box_dir()
+        bc.debug("Mounting '%s'..." % box_dir)
+        cmd = "sudo mount %s" % box_dir
+        if subprocess.call(cmd, shell=True) is not 0:
+            bc.error("Failed to mount sync dir.")
+            sys.exit(-1)
+    elif command == 'stop':
+        box_dir = setup.get_box_dir()
+        bc.debug("Unmounting '%s'..." % box_dir)
+        cmd = "sudo umount %s" % box_dir
+        if subprocess.call(cmd, shell=True) is not 0:
+            bc.error("Failed to unmount sync dir.")
+            sys.exit(-1)
     elif command == 'uninstall':
         setup = BoxSetup(bc)
         setup.uninstall()

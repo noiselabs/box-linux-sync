@@ -19,7 +19,11 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
+import pwd
 import os
+
+def get_username():
+    return pwd.getpwuid(os.getuid()).pw_name
 
 def create_file(filepath, dirmode=0700, filemode=0600):
     """

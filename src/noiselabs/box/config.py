@@ -73,10 +73,10 @@ class BoxConfig(object):
 
     def write_default_config(self, filepath):
         data = "; " + os.path.basename(filepath) + "\n" + \
-        "[main]\n" + \
+        "[main]\n\n" + \
         "; Path to your Box sync dir. Use a relative path to place this dir\n" + \
-        "; inside $HOME or an absolute path. Default: \"Box\"\n" + \
-        "box_dir = \"Box\"\n\n" + \
+        "; inside $HOME or an absolute path. Default: Box\n" + \
+        "box_dir = Box\n\n" + \
         "; Wether to use a WebDAV filesystem to synchronize your local and\n" + \
         "; remote files. Default: true\n" + \
         "use_davfs = true\n"
