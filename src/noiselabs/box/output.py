@@ -19,12 +19,15 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import curses
 import logging
 import os
 import time
 import sys
 import types
+
 from noiselabs.box.config import BASEDIR
 from noiselabs.box.utils import create_file
 from noiselabs.box.ansistrm import ColorizingStreamHandler
@@ -197,3 +200,17 @@ class BoxConsole():
 
     def log(self, lvl, msg):
         self.logger.log(lvl, msg)
+
+    def countdown(self, secs=5, doing="Starting"):
+        """ This method is based on Portage's _emerge.countdown
+        Copyright 1999-2009 Gentoo Foundation"""
+        if secs:
+            print("Waiting",secs,"seconds before starting (Control-C to abort)...")
+            print(doing+" in: ", end=' ')
+            ticks=list(range(secs))
+            ticks.reverse()
+            for sec in ticks:
+                sys.stdout.write(colorize("red", str(sec+1)+" "))
+                sys.stdout.flush()
+                time.sleep(1)
+            print()

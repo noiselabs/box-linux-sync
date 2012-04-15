@@ -19,7 +19,10 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from noiselabs.box.config import BoxConfig
+import os.path
+import shutil
+
+from noiselabs.box.config import BoxConfig, BASEDIR
 
 class BoxSetup(object):
     """
@@ -45,4 +48,16 @@ class BoxSetup(object):
 
     def wizard(self):
         pass
+
+    def uninstall(self):
+        if not os.path.isdir(BASEDIR):
+            self.out.info("Directory %s was already removed." % BASEDIR)
+            return False
+
+        self.out.countdown()
+        try:
+            shutil.rmtree(BASEDIR)
+            self.out.info("Removed directory %s." % BASEDIR)
+        except OSError:
+            self.out.error("Error removing directory %s" % BASEDIR)
     

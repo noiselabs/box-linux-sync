@@ -75,6 +75,7 @@ Commands:
   check       check box-sync setup and dependencies
   setup       launch a setup wizard
   help        show this help message and exit
+  uninstall   removes all configuration and cache files installed by box-sync
 """
     )
 
@@ -87,7 +88,7 @@ Commands:
 
     opts, pargs = parser.parse_args(args=args)
 
-    commands = ['check', 'help', 'pull', 'push', 'setup']
+    commands = ['check', 'help', 'pull', 'push', 'setup', 'uninstall']
 
     nargs = len(pargs)
     # Parse commands
@@ -111,3 +112,6 @@ Commands:
         pass
     elif command == 'push':
         pass
+    elif command == 'uninstall':
+        setup = BoxSetup(bc)
+        setup.uninstall()
