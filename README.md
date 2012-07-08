@@ -13,6 +13,17 @@ Overview
 
 File synchronization is currently done using the WebDAV interface provided by Box.com. There is also a [Python API](https://github.com/box/box-python-sdk) available but I haven't started to mess with it.
 
+Requirements
+------------
+
+Please make sure you Davfs installed before running this app. If not, `./box-sync check` will complain about it anyway.
+
+* Gentoo: emerge davfs2`
+* Debian, Ubuntu: `apt-get install davfs2`
+* Red Hat, SuSE, Fedora: `yum install davfs2`
+* ArchLinux: `pacman -S davfs2`
+
+
 Installation
 ------------
 
