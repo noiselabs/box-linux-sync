@@ -109,14 +109,14 @@ Workflow:
         box_dir = setup.get_box_dir()
         bc.debug("Mounting '%s'..." % box_dir)
         cmd = "sudo mount %s" % box_dir
-        if subprocess.call(cmd, shell=True) is not 0:
+        if subprocess.call(cmd, shell=True) != 0:
             bc.error("Failed to mount sync dir.")
             sys.exit(-1)
     elif command == 'stop':
         box_dir = setup.get_box_dir()
         bc.debug("Unmounting '%s'..." % box_dir)
         cmd = "sudo umount %s" % box_dir
-        if subprocess.call(cmd, shell=True) is not 0:
+        if subprocess.call(cmd, shell=True) != 0:
             bc.error("Failed to unmount sync dir.")
             sys.exit(-1)
     elif command == 'uninstall':

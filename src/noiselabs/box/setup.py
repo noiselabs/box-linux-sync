@@ -28,6 +28,7 @@ import subprocess
 import ConfigParser
 
 from noiselabs.box.config import BoxConfig, BASEDIR
+from noiselabs.box.pms.pms import get_pms
 from noiselabs.box.utils import get_username
 
 class BoxSetup(object):
@@ -52,13 +53,16 @@ class BoxSetup(object):
     def check_dep_davfs(self):
         self.out.info("* Checking davfs installation...")
         if not os.path.isfile("/etc/davfs2/davfs2.conf"):
-            self.out.error("* Davfs is not installed in your system. Please install it and re-run this application.")
-            self.out.error("  Gentoo:         emerge davfs2")
-            self.out.error("  Debian, Ubuntu: apt-get install davfs2")
-            self.out.error("  Red Hat:        yum install davfs2")
+            self.out.error("! Davfs is not installed in your system. Please install it and re-run this application.")
+            pms = get_pms()
+            if pms == False: return False
+            suggestion = pms.install('davfs2')
+            if suggestion != False:
+                self.out.info("  You may install it using: $ sudo " + suggestion)
             return False
         else:
             self.out.info("  Davfs install is OK.")
+            return True
         """
         * Quick setup:
         *    (as root)
@@ -82,7 +86,7 @@ class BoxSetup(object):
         if not user in grp.getgrnam("davfs2").gr_mem:
             self.out.warning("Adding yourself to davfs2 group (requires sudo)")
             cmd = "sudo gpasswd -a %s davfs2" % user
-            if subprocess.call(cmd, shell=True) is not 0:
+            if subprocess.call(cmd, shell=True) != 0:
                 self.out.error("Failed to add yourself to the davfs2 group")
                 return False
 
