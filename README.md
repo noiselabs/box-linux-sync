@@ -16,13 +16,12 @@ File synchronization is currently done using the WebDAV interface provided by Bo
 Requirements
 ------------
 
-Please make sure you Davfs installed before running this app. If not, `./box-sync check` will complain about it anyway.
-
-* Debian, Ubuntu: `apt-get install davfs2`
-* Red Hat, SuSE, Fedora: `yum install davfs2`
-* Gentoo: `emerge davfs2`
-* ArchLinux: `pacman -S davfs2`
-
+* [Python](http://www.python.org/download/releases/) 2.7 and up (may work on earlier versions, haven't tested).
+* [Davfs2](http://savannah.nongnu.org/projects/davfs2). To install it use:
+    * Debian, Ubuntu: `apt-get install davfs2`
+    * Red Hat, SuSE, Fedora: `yum install davfs2`
+    * Gentoo: `emerge davfs2`
+    * ArchLinux: `pacman -S davfs2`
 
 Installation
 ------------
@@ -69,11 +68,6 @@ This just removes `box-sync` configuration files and the repository, not your pe
 
     $ ./box-sync uninstall
     $ rm ~/path/to/box-linux-sync
-
-Requirements
-------------
-
-* Python 2.7 and up (may work on earlier versions, haven't tested).
 
 License
 -------
