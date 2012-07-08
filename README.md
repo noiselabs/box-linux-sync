@@ -18,9 +18,9 @@ Requirements
 
 Please make sure you Davfs installed before running this app. If not, `./box-sync check` will complain about it anyway.
 
-* Gentoo: emerge davfs2`
 * Debian, Ubuntu: `apt-get install davfs2`
 * Red Hat, SuSE, Fedora: `yum install davfs2`
+* Gentoo: `emerge davfs2`
 * ArchLinux: `pacman -S davfs2`
 
 
