@@ -19,6 +19,8 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import subprocess
 import sys
 
@@ -104,6 +106,7 @@ Workflow:
         setup.check()
     elif command == 'setup':
         setup.check()
+        print("")
         setup.wizard()
     elif command == 'start':
         box_dir = setup.get_box_dir()
