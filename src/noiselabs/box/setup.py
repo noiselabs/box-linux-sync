@@ -30,6 +30,7 @@ import ConfigParser
 
 from noiselabs.box import __prog__, __version__
 from noiselabs.box.config import BoxConfig, BASEDIR
+from noiselabs.box.configparser import WhitespaceDelimitedConfigParser
 from noiselabs.box.pms.pms import get_pms
 from noiselabs.box.utils import get_username
 
@@ -87,7 +88,7 @@ class BoxSetup(object):
             os.makedirs(box_dir, 0775)
             self.out.info("* Created sync directory at '%s'" % box_dir)
         else:
-            self.out.info("* Found sync directory at '%s'." % box_dir)
+            self.out.debug("* Found sync directory at '%s'." % box_dir)
 
         # Add the user to the davfs2 group
         user = get_username()
@@ -104,36 +105,66 @@ class BoxSetup(object):
 
         try:
             with open(secrets_file, 'r') as f: pass
+            self.out.debug("* Found personal secrets file in '%s'" % secrets_file)
         except IOError as e:
             # Create ~/.davfs2 directory if needed
             if not os.path.isdir(home_davfs_dir):
                 os.makedirs(home_davfs_dir, 0700)
                 self.out.info("*  Created a personal davfs2 directory at '%s'" % home_davfs_dir)
+            else:
+                self.out.debug("* Found personal davfs2 directory at '%s'." % home_davfs_dir)
             # Create a secrets file if needed
             with open(secrets_file, 'wb') as f:
                 f.write("# davfs2 secrets file\n"+
                 "# Created by %s-%s in %s" % (__prog__, __version__, str(datetime.date.today())+"\n"+
                 "\n"+
                 "# https://www.box.net/dav me@example.com mypassword\n"))
+                os.chmod(secrets_file, 0600)
             self.out.info("* Created a new secrets file in '%s'" % secrets_file)
 
-        print()
-        self.out.warning("The remaining procedures require a human intervention.")
-        self.out.warning("Please follow them carefully. Thanks for your patience!")
-        print()
+        cp = WhitespaceDelimitedConfigParser()
 
-        self.out.info("* 1. Add this line to your /etc/fstab (if not done already):")
-        print("  $ sudo echo \"https://www.box.com/dav %s davfs rw,user,noauto 0 0\" >> /etc/fstab" % box_dir)
-        print()
+        #print()
+        #self.out.warning("The remaining procedures may require human intervention.")
+        #self.out.warning("Please follow them carefully. Thanks for your patience!")
+        #print()
 
-        self.out.info("* 2. Add this line to %s (replace EMAIL and PASSWORD with your email address and password):" % secrets_file)
-        print("  $ echo \"https://www.box.net/dav EMAIL PASSWORD\" >> /etc/davfs2/secrets")
-        print()
+        cp.read(secrets_file)
+        line = cp.get_option('https://www.box.net/dav')
+        if line:
+            self.out.info("* '%s' looks good ;)" % secrets_file)
+            line[2] = '<HIDDEN>'
+            self.out.debug('  Read: "' + ' '.join(line) + '"')
+        else:
+            self.out.warning("* Credentials are missing from %s. Please add them:" % secrets_file)
+            print("  $ echo \"https://www.box.net/dav MYEMAIL MYPASSWORD\" >> %s" % secrets_file)
+            print()
+        cp.close()
 
-        self.out.info("* 3. Make sure 'use_locks 0' is set in /etc/davfs2/davfs2.conf")
-        editor = os.getenv('EDITOR')
-        print("  $ sudo %s /etc/davfs2/davfs2.conf" % editor)
-        print()
+        filepath = '/etc/fstab'
+        cp.read(filepath)
+        line = cp.get_option('https://www.box.com/dav')
+        if line:
+            self.out.info("* '%s' looks good ;)" % filepath)
+            self.out.debug('  Read: "' + ' '.join(line) + '"')
+        else:
+            self.out.warning("* Box mount point is missing. Please add this line to your /etc/fstab:")
+            print("  $ sudo echo \"https://www.box.com/dav %s davfs rw,user,noauto 0 0\" >> /etc/fstab" % box_dir)
+            print()
+        cp.close()
+
+        filepath = '/etc/davfs2/davfs2.conf'
+        cp.read(filepath)
+        line = cp.get_option('use_locks')
+        if line and line[1] == '0':
+            self.out.info("* '%s' looks good ;)" % filepath)
+            self.out.debug('  Read: "' + ' '.join(line) + '"')
+        else:
+            self.out.warning("* Please set 'use_locks 0' in /etc/davfs2/davfs2.conf")
+            editor = os.getenv('EDITOR')
+            print("  $ sudo %s /etc/davfs2/davfs2.conf" % editor)
+            print()
+        cp.close()
 
     def wizard(self):
         self.setup_davfs()
