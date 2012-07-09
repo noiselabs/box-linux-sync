@@ -99,28 +99,45 @@ class BoxSetup(object):
                 self.out.error("! Failed to add yourself to the davfs2 group")
                 return False
 
-        # Check for a .davfs2 secrets file in the home dir
+        # Create ~/.davfs2 directory if needed
         home_davfs_dir = os.path.join(self.home_dir, '.davfs2')
-        secrets_file = os.path.join(home_davfs_dir, 'secrets')
+        if not os.path.isdir(home_davfs_dir):
+            os.makedirs(home_davfs_dir, 0700)
+            self.out.info("*  Created a personal davfs2 directory at '%s'" % home_davfs_dir)
+        else:
+            self.out.debug("* Found personal davfs2 directory at '%s'." % home_davfs_dir)
 
+        # Check for a .davfs2 secrets file in the home dir
+        secrets_file = os.path.join(home_davfs_dir, 'secrets')
         try:
             with open(secrets_file, 'r') as f: pass
             self.out.debug("* Found personal secrets file in '%s'" % secrets_file)
         except IOError as e:
-            # Create ~/.davfs2 directory if needed
-            if not os.path.isdir(home_davfs_dir):
-                os.makedirs(home_davfs_dir, 0700)
-                self.out.info("*  Created a personal davfs2 directory at '%s'" % home_davfs_dir)
-            else:
-                self.out.debug("* Found personal davfs2 directory at '%s'." % home_davfs_dir)
             # Create a secrets file if needed
             with open(secrets_file, 'wb') as f:
                 f.write("# davfs2 secrets file\n"+
+                "# version 4\n"+
                 "# Created by %s-%s in %s" % (__prog__, __version__, str(datetime.date.today())+"\n"+
                 "\n"+
                 "# https://www.box.net/dav me@example.com mypassword\n"))
                 os.chmod(secrets_file, 0600)
             self.out.info("* Created a new secrets file in '%s'" % secrets_file)
+
+        # Check for a davfs2.conf file in the home dir
+        davfs_conf_file = os.path.join(home_davfs_dir, 'davfs2.conf')
+        try:
+            with open(davfs_conf_file, 'r') as f: pass
+            self.out.debug("* Found personal config file in '%s'" % secrets_file)
+        except IOError as e:
+            # Create a davfs.conf file if needed
+            with open(davfs_conf_file, 'wb') as f:
+                f.write("# davfs2 configuration file\n"+
+                "# version 9\n"+
+                "# Created by %s-%s in %s" % (__prog__, __version__, str(datetime.date.today())+"\n"+
+                "\n"+
+                "use_locks 0\n"))
+            os.chmod(davfs_conf_file, 0600)
+            self.out.info("* Installed a new davfs config file in '%s'" % davfs_conf_file)
 
         cp = WhitespaceDelimitedConfigParser()
 
@@ -141,11 +158,11 @@ class BoxSetup(object):
             print()
         cp.close()
 
-        filepath = '/etc/fstab'
-        cp.read(filepath)
+        fstab_file = '/etc/fstab'
+        cp.read(fstab_file)
         line = cp.get_option('https://www.box.com/dav')
         if line:
-            self.out.info("* '%s' looks good ;)" % filepath)
+            self.out.info("* '%s' looks good ;)" % fstab_file)
             self.out.debug('  Read: "' + ' '.join(line) + '"')
         else:
             self.out.warning("* Box mount point is missing. Please add this line to your /etc/fstab:")
@@ -153,11 +170,10 @@ class BoxSetup(object):
             print()
         cp.close()
 
-        filepath = '/etc/davfs2/davfs2.conf'
-        cp.read(filepath)
+        cp.read(davfs_conf_file)
         line = cp.get_option('use_locks')
         if line and line[1] == '0':
-            self.out.info("* '%s' looks good ;)" % filepath)
+            self.out.info("* '%s' looks good ;)" % davfs_conf_file)
             self.out.debug('  Read: "' + ' '.join(line) + '"')
         else:
             self.out.warning("* Please set 'use_locks 0' in /etc/davfs2/davfs2.conf")
