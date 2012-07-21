@@ -107,6 +107,17 @@ class BoxSetup(object):
         else:
             self.out.debug("* Found personal davfs2 directory at '%s'." % home_davfs_dir)
 
+        # Create ~/.davfs2/cache directory if needed
+        davfs_cache_dir = os.path.join(home_davfs_dir, 'cache')
+        if not os.path.isdir(davfs_cache_dir):
+            os.makedirs(davfs_cache_dir, 0700)
+            self.out.info("*  Created a personal cache directory at '%s'" % davfs_cache_dir)
+        else:
+            self.out.debug("* Found personal cache directory at '%s'." % davfs_cache_dir)
+            if (os.stat(davfs_cache_dir).st_mode & 0777) != 0700:
+                os.chmod(davfs_cache_dir, 0700)
+                self.out.info("*  Fixed '%s' permissions" % davfs_cache_dir)
+
         # Check for a .davfs2 secrets file in the home dir
         secrets_file = os.path.join(home_davfs_dir, 'secrets')
         try:
