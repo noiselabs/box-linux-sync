@@ -119,7 +119,7 @@ class BoxSetup(object):
                 "# version 4\n"+
                 "# Created by %s-%s in %s" % (__prog__, __version__, str(datetime.date.today())+"\n"+
                 "\n"+
-                "# https://www.box.net/dav me@example.com mypassword\n"))
+                "# https://www.box.com/dav me@example.com mypassword\n"))
                 os.chmod(secrets_file, 0600)
             self.out.info("* Created a new secrets file in '%s'" % secrets_file)
 
@@ -147,14 +147,14 @@ class BoxSetup(object):
         #print()
 
         cp.read(secrets_file)
-        line = cp.get_option('https://www.box.net/dav')
+        line = cp.get_option('https://www.box.com/dav')
         if line:
             self.out.info("* '%s' looks good ;)" % secrets_file)
             line[2] = '<HIDDEN>'
             self.out.debug('  Read: "' + ' '.join(line) + '"')
         else:
             self.out.warning("* Credentials are missing from %s. Please add them:" % secrets_file)
-            print("  $ echo \"https://www.box.net/dav MYEMAIL MYPASSWORD\" >> %s" % secrets_file)
+            print("  $ echo \"https://www.box.com/dav MYEMAIL MYPASSWORD\" >> %s" % secrets_file)
             print()
         cp.close()
 
