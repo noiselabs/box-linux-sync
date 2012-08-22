@@ -177,7 +177,7 @@ class BoxSetup(object):
             self.out.debug('  Read: "' + ' '.join(line) + '"')
         else:
             self.out.warning("* Box mount point is missing. Please add this line to your /etc/fstab:")
-            print("  $ sudo echo \"https://www.box.com/dav %s davfs rw,user,noauto 0 0\" >> /etc/fstab" % box_dir)
+            print("  $ sudo sh -c 'echo \"https://www.box.com/dav %s davfs rw,user,noauto 0 0\" >> /etc/fstab'" % box_dir)
             print()
         cp.close()
 
