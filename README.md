@@ -1,4 +1,4 @@
-box-linux-sync - A naive [Box.com](http://box.com/) Linux Client
+box-linux-sync - A naïve [Box.com](http://box.com/) Linux Client
 ================================================================
 
 An unofficial attempt to create a Linux synchronization client because Box.com does not provide one.
@@ -28,7 +28,7 @@ Installation
 
     $ cd ~/path/of/your/choice
     $ git clone git://github.com/noiselabs/box-linux-sync.git
-    
+
 Installation via Pip is not currently available. Let's wait for a proper release, OK?.
 
 Usage
@@ -39,17 +39,17 @@ Usage
     $ cd ~/path/to/box-linux-sync/bin
     $ ./box-sync check && ./box-sync setup
 
-###### Edit `~/.noiselabs/box/box-sync.cfg` to fit your preferences:   
-    
+###### Edit `~/.noiselabs/box/box-sync.cfg` to fit your preferences:
+
     $ vim ~/.noiselabs/box/box-sync.cfg
-    
+
     ; box-sync.cfg
     [main]
-    
+
     ; Path to your Box sync dir. Use a relative path to place this dir
     ; inside $HOME or an absolute path. Default: Box
     box_dir = Box
-    
+
     ; Wether to use a WebDAV filesystem to synchronize your local and
     ; remote files. Default: true
     use_davfs = true
@@ -57,12 +57,12 @@ Usage
 ###### Start synchronization via Davfs:
 
     $ ./box-sync start
-    
+
 ###### Stop synchronization:
 
     $ ./box-sync stop
 
-###### Send `box-sync` into oblivion when you get tired of it. 
+###### Send `box-sync` into oblivion when you get tired of it.
 
 This just removes `box-sync` configuration files and the repository, not your personal Box.com files (unless you have configured the `box_sync` dir to be inside `~/.noiselabs`).
 
