@@ -20,7 +20,14 @@ setup(name='box-linux-sync',
     description="Linux client for Box.com",
     long_description=README + '\n\n' + NEWS,
     classifiers=[
-      # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Environment :: Console',
+        'Intended Audience :: End Users/Desktop',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
+        'Natural Language :: English',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Communications :: File Sharing',
+        'Topic :: Utilities'
     ],
     keywords='box sync noiselabs',
     author='V\xc3\xadtor Brand\xc3\xa3o',
