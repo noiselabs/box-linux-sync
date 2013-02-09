@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2012 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -46,7 +46,7 @@ codes = {}
 
 esc_seq = "\x1b["
 
-codes["normal"]         = esc_seq + "0m"        
+codes["normal"]         = esc_seq + "0m"
 codes['reset']          = esc_seq + "39;49;00m"
 
 codes["bold"]         =  esc_seq + "01m"
@@ -155,10 +155,10 @@ def colorize(color_key, text):
         return text
 
 class BoxConsole():
-    """ 
+    """
     A class that performs fancy terminal formatting for status and informational
     messages built upon the logging module.
-    """ 
+    """
     def __init__(self, opts, name):
         self.name = name
         self.opts = opts
@@ -173,7 +173,7 @@ class BoxConsole():
         # create formatter and add it to the handlers
         #ch.setFormatter(logging.Formatter('%(message)s'))
         self.logger.addHandler(ch)
-        
+
         # create file handler
         if self.opts.log:
             logfile = os.path.join(BASEDIR, 'box-sync.log')
