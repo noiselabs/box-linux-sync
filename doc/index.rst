@@ -108,7 +108,7 @@ for details.
 Authors
 -------
 
-Vítor Brandão - noisebleed@noiselabs.org ~
+Vítor Brandão - vitor@noiselabs.org ~
 `twitter.com/noiselabs <http://twitter.com/noiselabs>`_ ~
 `blog.noiselabs.org <http://blog.noiselabs.org>`_
 
