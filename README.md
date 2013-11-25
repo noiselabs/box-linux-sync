@@ -80,3 +80,7 @@ Authors
 Vítor Brandão - <vitor@noiselabs.org> ~ [twitter.com/noiselabs](http://twitter.com/noiselabs) ~ [blog.noiselabs.org](http://blog.noiselabs.org)
 
 See also the list of [contributors](https://github.com/noiselabs/box-linux-sync/contributors) who participated in this project.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/noiselabs/box-linux-sync/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
