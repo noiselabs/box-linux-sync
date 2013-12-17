@@ -3,10 +3,14 @@ box-linux-sync - A naïve [Box.com](http://box.com/) Linux Client
 
 An unofficial attempt to create a Linux synchronization client because Box.com does not provide one.
 
-DISCLAIMER
-----------
+NOTICE
+------
 
-This software is **alpha quality** and you should keep away from it if you are sane enough. Unless you want to test and improve it, then you're more than welcome to try it.
+If your Box sync stopped working please open your `/etc/fstab` file and update the WebDav URL from `https://www.box.com/dav` to `https://dav.box.com/dav`.
+
+[Box.com blog post](https://support.box.com/entries/28641946-Features-to-be-removed-in-Q4-2013):
+
+> On November 15, 2013, we will be transitioning from the current WebDav (https://www.box.com/dav) to a new version (https://dav.box.com/dav) that provides added stability and performance improvements. Please change the URL in any internal apps before November 15 to ensure your users can continue accessing content via WebDav. 
 
 Overview
 --------
