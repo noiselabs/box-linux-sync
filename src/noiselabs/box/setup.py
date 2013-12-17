@@ -130,7 +130,7 @@ class BoxSetup(object):
                 "# version 4\n"+
                 "# Created by %s-%s in %s" % (__prog__, __version__, str(datetime.date.today())+"\n"+
                 "\n"+
-                "# https://www.box.com/dav me@example.com mypassword\n"))
+                "# https://dav.box.com/dav me@example.com mypassword\n"))
                 os.chmod(secrets_file, 0600)
             self.out.info("* Created a new secrets file in '%s'" % secrets_file)
 
@@ -158,26 +158,26 @@ class BoxSetup(object):
         #print()
 
         cp.read(secrets_file)
-        line = cp.get_option('https://www.box.com/dav')
+        line = cp.get_option('https://dav.box.com/dav')
         if line:
             self.out.info("* '%s' looks good ;)" % secrets_file)
             line[2] = '<HIDDEN>'
             self.out.debug('  Read: "' + ' '.join(line) + '"')
         else:
             self.out.warning("* Credentials are missing from %s. Please add them:" % secrets_file)
-            print("  $ echo \"https://www.box.com/dav MYEMAIL MYPASSWORD\" >> %s" % secrets_file)
+            print("  $ echo \"https://dav.box.com/dav MYEMAIL MYPASSWORD\" >> %s" % secrets_file)
             print()
         cp.close()
 
         fstab_file = '/etc/fstab'
         cp.read(fstab_file)
-        line = cp.get_option('https://www.box.com/dav')
+        line = cp.get_option('https://dav.box.com/dav')
         if line:
             self.out.info("* '%s' looks good ;)" % fstab_file)
             self.out.debug('  Read: "' + ' '.join(line) + '"')
         else:
             self.out.warning("* Box mount point is missing. Please add this line to your /etc/fstab:")
-            print("  $ sudo sh -c 'echo \"https://www.box.com/dav %s davfs rw,user,noauto 0 0\" >> /etc/fstab'" % box_dir)
+            print("  $ sudo sh -c 'echo \"https://dav.box.com/dav %s davfs rw,user,noauto 0 0\" >> /etc/fstab'" % box_dir)
             print()
         cp.close()
 
