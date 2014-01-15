@@ -1,5 +1,6 @@
 *.pyc
 *~
+*.swp
 
 .installed.cfg
 develop-eggs
@@ -10,3 +11,7 @@ tmp
 build
 _build
 dist
+
+.idea
+.project
+.pydevproject

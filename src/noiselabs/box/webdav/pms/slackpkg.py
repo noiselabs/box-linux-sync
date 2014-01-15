@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -21,18 +21,18 @@
 
 from noiselabs.box.pms.pms import BasePMS
 
-class YUM(BasePMS):
-    """The Yellowdog Updater, Modified (YUM) is an open-source command-line
-    package-management utility for RPM-compatible Linux operating systems"""
+class Slackpkg(BasePMS):
+    """slackpkg is a software tool for installing or upgrading packages
+    automatically through a network or over the Internet for Slackware."""
 
     def __str__(self):
-        return 'Yum'
+        return 'slackpkg'
 
     def search(self, pkg):
-        return "yum search %s" % pkg
+        return "slackpkg search %s" % pkg
 
     def install(self, pkg):
-        return "yum install %s" % pkg
+        return "slackpkg install %s" % pkg
 
     def remove(self, pkg):
-        return "yum remove %s" % pkg
+        return "slackpkg remove %s" % pkg

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2013 Vinay Sajip. All rights reserved. Licensed under the new BSD license.
+# Copyright (C) 2010-2014 Vinay Sajip. All rights reserved. Licensed under the new BSD license.
 #
 import ctypes
 import logging

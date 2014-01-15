@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the

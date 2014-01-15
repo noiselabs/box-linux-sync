@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -19,12 +19,11 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-import datetime
 import os
 import ConfigParser
 
-from noiselabs.box import __prog__, __version__
-from noiselabs.box.utils import create_file
+from noiselabs.box.webdav import __prog__, __version__
+from noiselabs.box.webdav.utils import create_file
 
 BASEDIR = os.path.expanduser('~/.noiselabs/box')
 

@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -25,9 +25,9 @@ import subprocess
 import sys
 
 from optparse import OptionParser
-from noiselabs.box import __prog__, __version__
-from noiselabs.box.output import BoxConsole
-from noiselabs.box.setup import BoxSetup
+from noiselabs.box.webdav import __prog__, __version__
+from noiselabs.box.webdav.output import BoxConsole
+from noiselabs.box.webdav.setup import BoxSetup
 
 class NoiselabsOptionParser(OptionParser):
     """

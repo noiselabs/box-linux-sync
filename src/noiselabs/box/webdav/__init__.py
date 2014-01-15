@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2012-2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -19,27 +19,9 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-import pwd
-import os
-
-def get_username():
-    return pwd.getpwuid(os.getuid()).pw_name
-
-def create_file(filepath, dirmode=0700, filemode=0600):
-    """
-    Creates a new file
-    """
-    if not os.path.isfile(filepath):
-        # if the base dir doesn't exist we need to create it first
-        basedir = os.path.dirname(filepath) 
-        if not os.path.isdir(basedir):
-            os.makedirs(os.path.dirname(filepath), dirmode)
-        # create the file
-        f = open(filepath, 'w+')
-        f.write('')
-        f.close()
-        os.chmod(filepath, filemode)
-        return True
-    else:
-        return False
-    
+__title__ = 'box-linux-sync'
+__prog__ = 'box-sync'
+__version__ = '0.1.0'
+__author__ = 'Vítor Brandão'
+__license__ = 'LGPL-3'
+__copyright__ = u'Copyright 2012-2014 Vítor Brandão'

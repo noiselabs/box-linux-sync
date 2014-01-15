@@ -19,26 +19,27 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-import signal
-import sys
-# This block ensures that ^C interrupts are handled quietly.
-try:
+import pwd
+import os
 
-    def exithandler(signum,frame):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
-        signal.signal(signal.SIGTERM, signal.SIG_IGN)
-        sys.exit(128 + signum)
+def get_username():
+    return pwd.getpwuid(os.getuid()).pw_name
 
-    signal.signal(signal.SIGINT, exithandler)
-    signal.signal(signal.SIGTERM, exithandler)
-    # Prevent "[Errno 32] Broken pipe" exceptions when
-    # writing to a pipe.
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
-
-except KeyboardInterrupt:
-    sys.exit(128 + signal.SIGINT)
-
-def debug_signal(signum, frame):
-    import pdb
-    pdb.set_trace()
-signal.signal(signal.SIGUSR1, debug_signal)
+def create_file(filepath, dirmode=0700, filemode=0600):
+    """
+    Creates a new file
+    """
+    if not os.path.isfile(filepath):
+        # if the base dir doesn't exist we need to create it first
+        basedir = os.path.dirname(filepath) 
+        if not os.path.isdir(basedir):
+            os.makedirs(os.path.dirname(filepath), dirmode)
+        # create the file
+        f = open(filepath, 'w+')
+        f.write('')
+        f.close()
+        os.chmod(filepath, filemode)
+        return True
+    else:
+        return False
+    

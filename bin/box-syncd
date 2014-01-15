@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -19,20 +19,26 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from noiselabs.box.pms.pms import BasePMS
+import signal
+import sys
+# This block ensures that ^C interrupts are handled quietly.
+try:
 
-class Pacman(BasePMS):
-    """Pacman is a software package manager, developed as part of the Arch Linux
-    distribution."""
+    def exithandler(signum,frame):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        sys.exit(128 + signum)
 
-    def __str__(self):
-        return 'pacman'
+    signal.signal(signal.SIGINT, exithandler)
+    signal.signal(signal.SIGTERM, exithandler)
+    # Prevent "[Errno 32] Broken pipe" exceptions when
+    # writing to a pipe.
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
-    def search(self, pkg):
-        return "pacman -Ss %s" % pkg
+except KeyboardInterrupt:
+    sys.exit(128 + signal.SIGINT)
 
-    def install(self, pkg):
-        return "pacman -S %s" % pkg
-
-    def remove(self, pkg):
-        return "pacman -R %s" % pkg
+def debug_signal(signum, frame):
+    import pdb
+    pdb.set_trace()
+signal.signal(signal.SIGUSR1, debug_signal)

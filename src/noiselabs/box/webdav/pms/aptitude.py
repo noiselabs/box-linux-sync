@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -21,18 +21,18 @@
 
 from noiselabs.box.pms.pms import BasePMS
 
-class Slackpkg(BasePMS):
-    """slackpkg is a software tool for installing or upgrading packages
-    automatically through a network or over the Internet for Slackware."""
+class Atitude(BasePMS):
+    """The Aptitude PMS used in the Debian family of Linux operating systems
+    (Ubuntu included)."""
 
     def __str__(self):
-        return 'slackpkg'
+        return 'Aptitude'
 
     def search(self, pkg):
-        return "slackpkg search %s" % pkg
+        return "aptitude search %s" % pkg
 
     def install(self, pkg):
-        return "slackpkg install %s" % pkg
+        return "aptitude install %s" % pkg
 
     def remove(self, pkg):
-        return "slackpkg remove %s" % pkg
+        return "aptitude remove %s" % pkg

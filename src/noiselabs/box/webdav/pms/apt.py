@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -21,17 +21,18 @@
 
 from noiselabs.box.pms.pms import BasePMS
 
-class Portage(BasePMS):
-    """Portage is a package management system used by Gentoo Linux."""
+class APT(BasePMS):
+    """The Advanced Packaging Tool used in the Debian family of Linux operating
+    systems (Ubuntu included)."""
 
     def __str__(self):
-        return 'Portage'
+        return 'APT'
 
     def search(self, pkg):
-        return "emerge  --searchdesc %s" % pkg
+        return "apt-cache search %s" % pkg
 
     def install(self, pkg):
-        return "emerge %s" % pkg
+        return "apt-get install %s" % pkg
 
     def remove(self, pkg):
-        return "emerge --unmerge %s" % pkg
+        return "apt-get remove %s" % pkg

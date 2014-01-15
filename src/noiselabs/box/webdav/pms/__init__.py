@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2013 Vítor Brandão <noisebleed@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -18,21 +18,3 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
-
-from noiselabs.box.pms.pms import BasePMS
-
-class Atitude(BasePMS):
-    """The Aptitude PMS used in the Debian family of Linux operating systems
-    (Ubuntu included)."""
-
-    def __str__(self):
-        return 'Aptitude'
-
-    def search(self, pkg):
-        return "aptitude search %s" % pkg
-
-    def install(self, pkg):
-        return "aptitude install %s" % pkg
-
-    def remove(self, pkg):
-        return "aptitude remove %s" % pkg

@@ -19,26 +19,21 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-import signal
-import sys
-# This block ensures that ^C interrupts are handled quietly.
-try:
+import csv
 
-    def exithandler(signum,frame):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
-        signal.signal(signal.SIGTERM, signal.SIG_IGN)
-        sys.exit(128 + signum)
+class WhitespaceDelimitedConfigParser(object):
+    """A really simple, stupid, class to parse whitespace delimited files
+    like /etc/fstab or /etc/davfs2/davfs.conf"""
 
-    signal.signal(signal.SIGINT, exithandler)
-    signal.signal(signal.SIGTERM, exithandler)
-    # Prevent "[Errno 32] Broken pipe" exceptions when
-    # writing to a pipe.
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
-
-except KeyboardInterrupt:
-    sys.exit(128 + signal.SIGINT)
-
-def debug_signal(signum, frame):
-    import pdb
-    pdb.set_trace()
-signal.signal(signal.SIGUSR1, debug_signal)
+    def read(self, filepath):
+        self.f = open(filepath, 'rb')
+        self.reader = csv.reader(self.f, delimiter=' ', skipinitialspace=True)
+    
+    def get_option(self, option, index=0):
+        for row in self.reader:
+            if row and option == row[0]:
+                return row
+        return False
+            
+    def close(self):
+        self.f.close()

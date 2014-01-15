@@ -42,3 +42,16 @@ def debug_signal(signum, frame):
     import pdb
     pdb.set_trace()
 signal.signal(signal.SIGUSR1, debug_signal)
+
+try:
+    from noiselabs.box.webdav.main import box_main
+except ImportError:
+    from os import path as osp
+    sys.path.insert(0, osp.join(osp.dirname(osp.dirname(osp.realpath(__file__))), "src"))
+    from noiselabs.box.webdav.main import box_main
+    
+if __name__ == "__main__":
+    import sys
+    retval = box_main()
+    sys.exit(retval)
+    
