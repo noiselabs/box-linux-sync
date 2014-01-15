@@ -10,13 +10,14 @@ version = '0.1.0'
 install_requires = [
     # List your project dependencies here.
     # For more details, see:
-    # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
+    # http://pythonhosted.org/setuptools/setuptools.html#declaring-dependencies
+    pyinotify >= 0.9.4
 ]
 
 
 setup(name='box-linux-sync',
     version=version,
-    description="Linux client for Box.com",
+    description="Linux sync client for Box.com",
     long_description=README + '\n\n' + NEWS,
     classifiers=[
         'Environment :: Console',
@@ -30,8 +31,8 @@ setup(name='box-linux-sync',
     ],
     keywords='box sync noiselabs',
     author='V\xc3\xadtor Brand\xc3\xa3o',
-    author_email='noisebleed@noiselabs.org',
-    url='https://github.com/noisebleed/box-linux-sync',
+    author_email='vitor@noiselabs.org',
+    url='https://github.com/noiselabs/box-linux-sync',
     license='LGPL-3',
     packages=find_packages('src'),
     package_dir = {'': 'src'},
@@ -41,6 +42,8 @@ setup(name='box-linux-sync',
     install_requires=install_requires,
     entry_points={
         'console_scripts':
-            ['box-linux-sync=noiselabs.box:main']
+            ['boxsync=noiselabs.box:syncd:sync_main',
+             'boxsyncd=noiselabs.box:syncd:syncd_main',
+             'boxsync-webdav=noiselabs.box:webdav:main']
     }
 )

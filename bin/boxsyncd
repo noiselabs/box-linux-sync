@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
+# Copyright (C) 2012-2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -42,3 +42,15 @@ def debug_signal(signum, frame):
     import pdb
     pdb.set_trace()
 signal.signal(signal.SIGUSR1, debug_signal)
+
+try:
+    from noiselabs.box.syncd.main import box_main
+except ImportError:
+    from os import path as osp
+    sys.path.insert(0, osp.join(osp.dirname(osp.dirname(osp.realpath(__file__))), "src"))
+    from noiselabs.box.syncd.main import syncd_main
+
+if __name__ == "__main__":
+    import sys
+    retval = syncd_main()
+    sys.exit(retval)

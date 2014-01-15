@@ -20,7 +20,7 @@
 # <http://www.gnu.org/licenses/>.
 
 __title__ = 'box-linux-sync'
-__prog__ = 'box-syn-webdav'
+__prog__ = 'boxsync'
 __version__ = '0.1.0'
 __author__ = 'Vítor Brandão'
 __license__ = 'LGPL-3'
