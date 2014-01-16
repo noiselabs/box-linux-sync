@@ -21,11 +21,15 @@
 
 from __future__ import print_function
 
+import errno
+import os
 import subprocess
 import sys
 
 from optparse import OptionParser
 from noiselabs.box.syncd import __prog__, __version__
+from noiselabs.box.syncd.config import BoxSyncConfig
+from noiselabs.box.syncd.daemon import SyncDaemon
 from noiselabs.box.webdav.output import BoxConsole
 from noiselabs.box.webdav.setup import BoxSetup
 
@@ -51,7 +55,7 @@ def sync_main(args=None):
 
     prog = __prog__
     version = __version__
-    description = "boxsync command-line interface"
+    description = "%s command-line interface" % __prog__
     usage = "Usage: %prog [options] <command>"
 
     log_help = "log output to ~/.noiselabs/box/boxsyncd.log"
@@ -63,6 +67,8 @@ def sync_main(args=None):
         description=description,
         epilog=
 """
+Note: use %s help <command> to view usage for a specific command.
+
 Commands:
   status       get current status of the boxsyncd
   help         provide help
@@ -74,7 +80,7 @@ Commands:
   autostart    automatically start boxsync at login
   exclude      ignores/excludes a directory from syncing
 
-"""
+""" % (__prog__)
     )
 
     parser.add_option("-l", "--log", help=log_help, action="store_true",
@@ -84,20 +90,91 @@ Commands:
 
     opts, pargs = parser.parse_args(args=args)
 
-    commands = ['status', 'help', 'stop', 'running', 'start', 'filestatus',
-                'ls', 'autostart', 'exclude']
+    commands = {
+        'status':
+"""%s status
+
+Prints out the current status of the %sd daemon.
+""" % (__prog__, __prog__),
+
+        'help':
+"""%s help
+""" % (__prog__),
+
+        'stop':
+"""%s stop
+""" % (__prog__),
+
+        'running':
+"""%s running
+""" % (__prog__),
+
+        'start':
+"""%s start
+
+Starts the %s daemon, %sd. If %sd is already running, this will do nothing.
+""" % (__prog__, __prog__, __prog__, __prog__),
+
+        'filestatus':
+"""%s filestatus
+""" % (__prog__),
+
+        'ls':
+"""%s ls
+""" % (__prog__),
+
+        'autostart':
+"""%s autostart
+""" % (__prog__),
+
+        'exclude':
+"""%s exclude
+""" % (__prog__),
+
+        'debug':
+"""DEV-only.
+"""
+    }
 
     nargs = len(pargs)
     if nargs == 0:
         parser.print_help()
         sys.exit(0)
-    elif pargs[0] not in commands:
+    elif pargs[0] not in commands.keys():
         parser.print_help()
         sys.exit(0)
     else:
         command = pargs[0]
         if command == 'help':
-            parser.print_help()
+            if nargs == 1:
+                parser.print_help()
+            else:
+                command = pargs[1]
+                if command not in commands.keys():
+                    print("unknown command '%s'" % command)
+                else:
+                    print(commands[command])
             sys.exit(0)
 
+    # Output helper
     bc = BoxConsole(opts, __prog__)
+
+    # Directory holding boxsyncd configuration
+    cfgdir = os.path.join(os.path.expanduser('~'), '.noiselabs/boxsync')
+    try:
+        os.makedirs(cfgdir, 0700)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(cfgdir):
+            pass
+        else:
+            bc.critical("Can't create boxsyncd config dir at '%s'!" % cfgdir)
+            raise
+
+    cfg = BoxSyncConfig(cfgdir)
+    syncd = SyncDaemon(cfg)
+    if 'start' == command:
+        syncd.start()
+    elif 'stop' == command:
+        syncd.stop()
+    elif 'debug' == command:
+        syncd.run()
