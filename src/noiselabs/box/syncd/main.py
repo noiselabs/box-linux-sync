@@ -171,7 +171,7 @@ Starts the %s daemon, %sd. If %sd is already running, this will do nothing.
             raise
 
     cfg = BoxSyncConfig(cfgdir)
-    syncd = SyncDaemon(cfg)
+    syncd = SyncDaemon(cfg, bc)
     if 'start' == command:
         syncd.start()
     elif 'stop' == command:
