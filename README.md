@@ -3,33 +3,23 @@ box-linux-sync - A naïve [Box.com](http://box.com/) Linux Client
 
 An unofficial attempt to create a Linux synchronization client because Box.com does not provide one.
 
-NOTICE
-------
+WARNING
+-------
 
-If your Box sync stopped working please open your `/etc/fstab` file and update the WebDav URL from `https://www.box.com/dav` to `https://dav.box.com/dav`.
-
-[Box.com blog post](https://support.box.com/entries/28641946-Features-to-be-removed-in-Q4-2013):
-
-> On November 15, 2013, we will be transitioning from the current WebDav (https://www.box.com/dav) to a new version (https://dav.box.com/dav) that provides added stability and performance improvements. Please change the URL in any internal apps before November 15 to ensure your users can continue accessing content via WebDav. 
-
-Overview
---------
-
-File synchronization is currently done using the WebDAV interface provided by Box.com. There is also a [Python API](https://github.com/box/box-python-sdk) available but I haven't started to mess with it.
+This is work in progress. The daemon is not yet functional. But suggestions and patches are welcome!
 
 Requirements
 ------------
 
 * [Python](http://www.python.org/download/releases/) 2.7 and up (may work on earlier versions, haven't tested).
-* [Davfs2](http://savannah.nongnu.org/projects/davfs2). To install it use:
-    * Debian, Ubuntu: `apt-get install davfs2`
-    * Red Hat, SuSE, Fedora: `yum install davfs2`
-    * Gentoo: `emerge davfs2`
-    * ArchLinux: `pacman -S davfs2`
+* [Pyinotify](https://github.com/seb-m/pyinotify)
+* [Box.py](https://github.com/sookasa/box.py)
+* [Peewee](https://github.com/coleifer/peewee)
 
 Installation
 ------------
 
+    $ pip install pyinotify box.py peewee
     $ cd ~/path/of/your/choice
     $ git clone git://github.com/noiselabs/box-linux-sync.git
 
@@ -38,45 +28,34 @@ Installation via Pip is not currently available. Let's wait for a proper release
 Usage
 -----
 
-###### Check environment and setup `box-sync` and it's dependencies:
+    $ box-linux-sync.git/bin/boxsync help
 
-    $ cd ~/path/to/box-linux-sync/bin
-    $ ./box-sync check && ./box-sync setup
+    Usage: boxsync [options] <command>
 
-###### Edit `~/.noiselabs/box/box-sync.cfg` to fit your preferences:
+    boxsync command-line interface
 
-    $ vim ~/.noiselabs/box/box-sync.cfg
+    Options:
+      --version      show program's version number and exit
+      -h, --help     show this help message and exit
+      -v, --verbose  be verbose
 
-    ; box-sync.cfg
-    [main]
+    Note: use boxsync help <command> to view usage for a specific command.
 
-    ; Path to your Box sync dir. Use a relative path to place this dir
-    ; inside $HOME or an absolute path. Default: Box
-    box_dir = Box
-
-    ; Wether to use a WebDAV filesystem to synchronize your local and
-    ; remote files. Default: true
-    use_davfs = true
-
-###### Start synchronization via Davfs:
-
-    $ ./box-sync start
-
-###### Stop synchronization:
-
-    $ ./box-sync stop
-
-###### Send `box-sync` into oblivion when you get tired of it.
-
-This just removes `box-sync` configuration files and the repository, not your personal Box.com files (unless you have configured the `box_sync` dir to be inside `~/.noiselabs`).
-
-    $ ./box-sync uninstall
-    $ rm ~/path/to/box-linux-sync
+    Commands:
+      status       get current status of the boxsyncd
+      help         provide help
+      stop         stop boxsyncd
+      running      return whether boxsyncd is running
+      start        start boxsyncd
+      filestatus   get current sync status of one or more files
+      ls           list directory contents with current sync status
+      autostart    automatically start boxsync at login
+      exclude      ignores/excludes a directory from syncing
 
 License
 -------
 
-This application is licensed under the LGPLv3 License. See the [LICENSE file](https://github.com/noiselabs/box-linux-sync/blob/master/LICENSE) for details.
+This application is licensed under the LGPLv3 License. See the [LICENSE file](https://github.com/noiselabs/box-linux-sync/blob/daemon/LICENSE) for details.
 
 Authors
 -------
