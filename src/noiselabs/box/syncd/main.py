@@ -58,7 +58,7 @@ def sync_main(args=None):
     description = "%s command-line interface" % __prog__
     usage = "Usage: %prog [options] <command>"
 
-    log_help = "log output to ~/.noiselabs/box/boxsyncd.log"
+    #log_help = "log output to ~/.noiselabs/box/boxsyncd.log"
 
     parser = NoiselabsOptionParser(
         usage=usage,
@@ -83,8 +83,8 @@ Commands:
 """ % (__prog__)
     )
 
-    parser.add_option("-l", "--log", help=log_help, action="store_true",
-        dest="log")
+    #parser.add_option("-l", "--log", help=log_help, action="store_true",
+    #    dest="log")
     parser.add_option("-v", "--verbose", help="be verbose", action="store_true",
         dest="verbose")
 
@@ -159,18 +159,7 @@ Starts the %s daemon, %sd. If %sd is already running, this will do nothing.
     # Output helper
     bc = BoxConsole(opts, __prog__)
 
-    # Directory holding boxsyncd configuration
-    cfgdir = os.path.join(os.path.expanduser('~'), '.noiselabs/boxsync')
-    try:
-        os.makedirs(cfgdir, 0700)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(cfgdir):
-            pass
-        else:
-            bc.critical("Can't create boxsyncd config dir at '%s'!" % cfgdir)
-            raise
-
-    cfg = BoxSyncConfig(cfgdir)
+    cfg = BoxSyncConfig()
     syncd = SyncDaemon(cfg, bc)
     if 'start' == command:
         syncd.start()
@@ -178,3 +167,5 @@ Starts the %s daemon, %sd. If %sd is already running, this will do nothing.
         syncd.stop()
     elif 'debug' == command:
         syncd.run()
+    elif 'exclude' == command:
+        cfg.exclude(pargs[1:])
