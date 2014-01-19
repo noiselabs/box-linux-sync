@@ -40,7 +40,7 @@ class BoxConfig(object):
 
     def check_file(self):
         """
-        Check for config file existance and create if it doesn't
+        Check for config file existence and create if it doesn't
         """
         if create_file(self.filepath):
             self.out.info("Created configuration file '%s'" % self.filepath)
