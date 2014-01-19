@@ -154,7 +154,7 @@ def colorize(color_key, text):
     else:
         return text
 
-class BoxConsole():
+class BoxConsole(object):
     """
     A class that performs fancy terminal formatting for status and informational
     messages built upon the logging module.
@@ -175,7 +175,7 @@ class BoxConsole():
         self.logger.addHandler(ch)
 
         # create file handler
-        if self.opts.log:
+        if hasattr(self.opts, 'log') and self.opts.log:
             logfile = os.path.join(BASEDIR, 'box-sync.log')
             create_file(logfile)
             fh = logging.FileHandler(logfile)
