@@ -27,16 +27,13 @@
 
 from __future__ import print_function
 
-import sys, os, time, atexit
+import fnmatch, os, time, atexit
 from signal import SIGTERM
 import pyinotify
-import sys, os
 import datetime
-import subprocess
-import shlex
 import re
 from types import *
-from string import Template
+
 
 class Daemon(object):
     """
@@ -45,6 +42,14 @@ class Daemon(object):
     Usage: subclass the Daemon class and override the run method
     """
     def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+        """
+
+        @param pidfile:
+        @param stdin:
+        @param stdout:
+        @param stderr:
+        @return:
+        """
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
@@ -62,7 +67,7 @@ class Daemon(object):
                 #exit first parent
                 sys.exit(0)
         except OSError, e:
-            sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
+            sys.stderr.write("Fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
         # Decouple from parent environment
@@ -74,10 +79,10 @@ class Daemon(object):
         try:
             pid = os.fork()
             if pid > 0:
-                # exit from second parent
+                # Exit from second parent
                 sys.exit(0)
         except OSError, e:
-            sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
+            sys.stderr.write("Fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
         # Redirect standard file descriptors
@@ -91,11 +96,11 @@ class Daemon(object):
         os.dup2(se.fileno(), sys.stderr.fileno())
 
         # Write pid file
-        atexit.register(self.delpid)
+        atexit.register(self.remove_pidfile)
         pid = str(os.getpid())
         file(self.pidfile, 'w+').write("%s\n" % pid)
 
-    def delpid(self):
+    def remove_pidfile(self):
         """
         Remove the pidfile.
         """
@@ -127,7 +132,7 @@ class Daemon(object):
         """
         Stop the daemon
         """
-        # get the pid from the pidfile
+        # Get the pid from the pidfile
         try:
             pf = file(self.pidfile, 'r')
             pid = int(pf.read().strip())
@@ -168,20 +173,19 @@ class Daemon(object):
         """
         raise NotImplementedError('Please override run() in your Daemon subclass')
 
+
 class EventHandler(pyinotify.ProcessEvent):
-    def __init__(self, command, recursive, exclude, mask, parent, prefix, root):
+    """
+    Process events objects.
+    """
+    def __init__(self, parent, prefix, root):
         pyinotify.ProcessEvent.__init__(self)
-        self.command = command     #the command to be run
-        self.recursive = recursive #watch recursively?
-        self.exclude = exclude      #path to exclude
-        self.mask = mask           #the watch mask
         self.parent = parent       #should be calling instance of WatcherDaemon
         self.prefix = prefix       #prefix to handle recursively watching new dirs
         self.root = root           #root of watch (actually used to calculate subdirs)
         self.move_map = {}
 
     def run_command(self, event, ignore_cookie=True):
-        t = Template(self.command)
         sub_regex = self.root
 
         #build the dest_file
@@ -203,79 +207,43 @@ class EventHandler(pyinotify.ProcessEvent):
             del self.move_map[event.cookie]
 
         # Run substitutions on the command
-        command = t.safe_substitute({
-                'watched': event.path,
-                'filename': event.pathname,
-                'dest_file': dfile,
-                'tflags': event.maskname,
-                'nflags': event.mask,
-                'src_path': src_path,
-                'src_rel_path': src_rel_path,
-                'datetime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                })
+        print("[%s] watched:'%s' filename:'%s' dest_file:'%s' tflags:'%s' nflags:'%s' src_path:'%s' src_rel_path:'%s'" %(
+                datetime.datetime.now(), event.path,  event.pathname, dfile, event.maskname, event.mask, src_path, src_rel_path))
 
-        # Try the command
-        try:
-            subprocess.call(shlex.split(command))
-        except OSError, err:
-            print("Failed to run command '%s' %s" % (command, str(err)))
 
-        # Handle recursive watching of directories
-        if self.recursive and os.path.isdir(event.pathname):
-
-            prefix = event.name
-            if self.prefix != "":
-                prefix = self.prefix + '/' + prefix
-            self.parent.add_watch(self.mask,
-                                 event.pathname,
-                                 self.exclude,
-                                 True,
-                                 self.command,
-                                 prefix)
 
     def process_IN_ACCESS(self, event):
-        print("Access: ", event.pathname)
         self.run_command(event)
 
     def process_IN_ATTRIB(self, event):
-        print("Attrib: ", event.pathname)
         self.run_command(event)
 
     def process_IN_CLOSE_WRITE(self, event):
-        print("Close write: ", event.pathname)
         self.run_command(event)
 
     def process_IN_CLOSE_NOWRITE(self, event):
-        print("Close nowrite: ", event.pathname)
         self.run_command(event)
 
     def process_IN_CREATE(self, event):
-        print("Creating: ", event.pathname)
         self.run_command(event)
 
     def process_IN_DELETE(self, event):
-        print("Deleteing: ", event.pathname)
         self.run_command(event)
 
     def process_IN_MODIFY(self, event):
-        print("Modify: ", event.pathname)
         self.run_command(event)
 
     def process_IN_MOVE_SELF(self, event):
-        print("Move self: ", event.pathname)
         self.run_command(event)
 
     def process_IN_MOVED_FROM(self, event):
-        print("Moved from: ", event.pathname)
         self.move_map[event.cookie] = event.pathname
         self.run_command(event)
 
     def process_IN_MOVED_TO(self, event):
-        print("Moved to: ", event.pathname)
         self.run_command(event, False)
 
     def process_IN_OPEN(self, event):
-        print("Opened: ", event.pathname)
         self.run_command(event)
 
 
@@ -283,6 +251,39 @@ class SyncDaemon(Daemon):
     """
     The Almighty BoxSync daemon. Sometimes it works.
     """
+
+    # List of events:
+    #  IN_ACCESS: File was accessed.
+    #  IN_MODIFY: File was modified.
+    #  IN_ATTRIB: Metadata changed.
+    #  IN_CLOSE_WRITE: Writtable file was closed.
+    #  IN_CLOSE_NOWRITE: Unwrittable file closed.
+    #  IN_OPEN: File was opened.
+    #  IN_MOVED_FROM: File was moved from X.
+    #  IN_MOVED_TO: File was moved to Y.
+    #  IN_CREATE: Subfile was created.
+    #  IN_DELETE: Subfile was deleted.
+    #  IN_DELETE_SELF: Self (watched item itself) was deleted.
+    #  IN_MOVE_SELF: Self (watched item itself) was moved.
+    #  IN_UNMOUNT: Backing fs was unmounted.
+    #  IN_Q_OVERFLOW: Event queued overflowed.
+    #  IN_IGNORED: File was ignored.
+    #  IN_ONLYDIR: Only watch the path if it is a directory (new
+    #              in kernel 2.6.15).
+    #  IN_DONT_FOLLOW: Don't follow a symlink (new in kernel 2.6.15).
+    #                  IN_ONLYDIR we can make sure that we don't watch
+    #                  the target of symlinks.
+    #  IN_EXCL_UNLINK: Events are not generated for children after they
+    #                  have been unlinked from the watched directory.
+    #                  (new in kernel 2.6.36).
+    #  IN_MASK_ADD: add to the mask of an already existing watch (new
+    #               in kernel 2.6.14).
+    #  IN_ISDIR: Event occurred against dir.
+    #  IN_ONESHOT: Only send event once.
+    #  ALL_EVENTS: Alias for considering all of the events.
+    mask = pyinotify.IN_MODIFY | pyinotify.IN_ATTRIB | pyinotify.IN_MOVED_FROM | pyinotify.IN_MOVED_TO \
+    | pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_UNMOUNT | pyinotify.IN_ONLYDIR | pyinotify.IN_EXCL_UNLINK
+
     def __init__(self, cfg, bc):
         """
         Constructor.
@@ -293,131 +294,60 @@ class SyncDaemon(Daemon):
         """
         self.cfg = cfg
         self.bc = bc
-        self.async = True # asyncore vs threaded
-        super(SyncDaemon,self).__init__(os.path.join(self.cfg.basedir, 'boxsyncd.pid'))
+        self.async = True # AsyncNotifier or ThreadedNotifier
+        self.boxdir = self.cfg.get_box_location()
+        super(SyncDaemon,self).__init__(os.path.join(self.cfg.get_data_dir(), 'boxsyncd.pid'))
+
+        self.exclude_list_relative = self.cfg.get_exclude_list()
+        self.exclude_list_absolute = [os.path.join(self.boxdir, r) for r in self.exclude_list_relative]
 
     def run(self):
         """
 
         @return:
         """
-        self.bc.info("Daemon started at %s" % datetime.datetime.today())
-        boxdir = self.cfg.get_boxdir()
-        print("Box directory: " + boxdir)
-        self.wdds = []
-        self.notifiers = []
+        self.bc.debug("[%s] Daemon started" % datetime.datetime.now())
+        if self.bc.opts.verbose:
+            self.bc.debug('[%s] Exclude list: "%s"' %(datetime.datetime.now(), '", "'.join(self.exclude_list_relative)))
+        self.index()
 
-        # List of events to watch for.
-        # Supported events:
-        #  'access' - File was accessed (read) (*)
-        #  'atrribute_change' - Metadata changed (permissions, timestamps, extended attributes, etc.) (*)
-        #  'write_close' - File opened for writing was closed (*)
-        #  'nowrite_close' - File not opened for writing was closed (*)
-        #  'create' - File/directory created in watched directory (*)
-        #  'delete' - File/directory deleted from watched directory (*)
-        #  'self_delete' - Watched file/directory was itself deleted
-        #  'modify' - File was modified (*)
-        #  'self_move' - Watched file/directory was itself moved
-        #  'move_from' - File moved out of watched directory (*)
-        #  'move_to' - File moved into watched directory (*)
-        #  'open' - File was opened (*)
-        #  'all' - Any of the above events are fired
-        #  'move' - A combination of 'move_from' and 'move_to'
-        #  'close' - A combination of 'write_close' and 'nowrite_close'
-        #
-        # When monitoring a directory, the events marked with an asterisk (*) above
-        # can occur for files in the directory, in which case the name field in the
-        # returned event data identifies the name of the file within the directory.
-        mask = self._parse_mask(['create', 'move_from', 'move_to', 'delete', 'modify'])
-        folder = boxdir
-        exclude = []
-        recursive = True
-        command = "echo $datetime $filename $tflags"
-
-        self.add_watch(mask, folder, exclude, recursive, command)
-
-    def add_watch(self, mask, folder, exclude, recursive, command, prefix=""):
-        """
-
-        @param mask:
-        @param folder:
-        @param exclude:
-        @param recursive:
-        @param command:
-        @param prefix:
-        @return:
-        """
         wm = pyinotify.WatchManager()
-        handler = EventHandler(command, recursive, exclude, mask, self, prefix, folder)
+        handler = EventHandler(self, "", self.boxdir)
 
         if self.async:
             notifier = pyinotify.AsyncNotifier(wm, handler)
+            self.bc.debug("[%s] pyinotify: using AsyncNotifier" % datetime.datetime.now())
         else:
-            # Start the notifier from a new thread, without doing anything as no directory or file are currently monitored
-            # yet.
+            # Start the notifier from a new thread, without doing anything as no directory or file are currently
+            # monitored yet.
             notifier = pyinotify.ThreadedNotifier(wm, handler)
-            #notifier.start()
-            self.notifiers.append(pyinotify.ThreadedNotifier(wm, handler))
+            self.bc.debug("[%s] pyinotify: using ThreadedNotifier" % datetime.datetime.now())
 
-        # adding exclusion list
-        excl_lst = exclude
-        excl = pyinotify.ExcludeFilter(excl_lst)
+        # Adding exclusion list
+        exclude_filter = pyinotify.ExcludeFilter(self.exclude_list_absolute)
         # Start watching a path
-        self.wdds.append(wm.add_watch(folder, mask, rec=recursive, exclude_filter=excl))
+        wm.add_watch(self.boxdir, self.mask, rec=True, auto_add=True, exclude_filter=exclude_filter)
 
-        self.bc.info('Start monitoring %s (type ctrl^c to exit)' % folder)
+        self.bc.info("[%s] Monitoring started (type Ctrl^C to exit)" % datetime.datetime.now())
         if self.async:
             import asyncore
             asyncore.loop()
         else:
             notifier.loop()
 
+    def index(self):
+        self.bc.info('[%s] Indexing "%s" ...' % (datetime.datetime.now(), self.boxdir))
+        prefix_len = len(self.boxdir)
+        for root, dirnames, filenames in os.walk(self.boxdir):
+            root = root[prefix_len:].lstrip('/')
+            if root in self.exclude_list_relative:
+                self.bc.debug('[%s] -  Skipped "%s" (selective sync)' % (datetime.datetime.now(), root))
+                continue
+            else:
+                for d in dirnames:
+                    dir = os.path.join(root, d)
+                    if dir not in self.exclude_list_relative:
+                        self.bc.debug('[%s] d  %s' % (datetime.datetime.now(), dir))
+                for file in filenames:
+                    self.bc.debug('[%s] f  %s' % (datetime.datetime.now(), os.path.join(root, file)))
 
-
-
-    def _parse_mask(self, masks):
-        ret = False;
-
-        for mask in masks:
-            if 'access' == mask:
-                ret = self._add_mask(pyinotify.IN_ACCESS, ret)
-            elif 'atrribute_change' == mask:
-                ret = self._add_mask(pyinotify.IN_ATTRIB, ret)
-            elif 'write_close' == mask:
-                ret = self._add_mask(pyinotify.IN_CLOSE_WRITE, ret)
-            elif 'nowrite_close' == mask:
-                ret = self._add_mask(pyinotify.IN_CLOSE_NOWRITE, ret)
-            elif 'create' == mask:
-                ret = self._add_mask(pyinotify.IN_CREATE, ret)
-            elif 'delete' == mask:
-                ret = self._add_mask(pyinotify.IN_DELETE, ret)
-            elif 'self_delete' == mask:
-                ret = self._add_mask(pyinotify.IN_DELETE_SELF, ret)
-            elif 'modify' == mask:
-                ret = self._add_mask(pyinotify.IN_MODIFY, ret)
-            elif 'self_move' == mask:
-                ret = self._add_mask(pyinotify.IN_MOVE_SELF, ret)
-            elif 'move_from' == mask:
-                ret = self._add_mask(pyinotify.IN_MOVED_FROM, ret)
-            elif 'move_to' == mask:
-                ret = self._add_mask(pyinotify.IN_MOVED_TO, ret)
-            elif 'open' == mask:
-                ret = self._add_mask(pyinotify.IN_OPEN, ret)
-            elif 'all' == mask:
-                m = pyinotify.IN_ACCESS | pyinotify.IN_ATTRIB | pyinotify.IN_CLOSE_WRITE | \
-                    pyinotify.IN_CLOSE_NOWRITE | pyinotify.IN_CREATE | pyinotify.IN_DELETE | \
-                    pyinotify.IN_DELETE_SELF | pyinotify.IN_MODIFY | pyinotify.IN_MOVE_SELF | \
-                    pyinotify.IN_MOVED_FROM | pyinotify.IN_MOVED_TO | pyinotify.IN_OPEN
-                ret = self._add_mask(m, ret)
-            elif 'move' == mask:
-                ret = self._add_mask(pyinotify.IN_MOVED_FROM | pyinotify.IN_MOVED_TO, ret)
-            elif 'close' == mask:
-                ret = self._add_mask(pyinotify.IN_CLOSE_WRITE | pyinotify.IN_CLOSE_NOWRITE, ret)
-
-        return ret
-
-    def _add_mask(self, new_option, current_options):
-        if not current_options:
-            return new_option
-        else:
-            return current_options | new_option
