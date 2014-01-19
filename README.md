@@ -3,10 +3,10 @@ box-linux-sync - A naïve [Box.com](http://box.com/) Linux Client
 
 An unofficial attempt to create a Linux synchronization client because Box.com does not provide one.
 
-WARNING
--------
+BIG FAT WARNING
+---------------
 
-This is work in progress. The daemon is not yet functional. But suggestions and patches are welcome!
+This is work in progress. The daemon is not yet functional. But suggestions and patches are welcome ;) Thanks!
 
 Requirements
 ------------
@@ -51,6 +51,10 @@ Usage
       ls           list directory contents with current sync status
       autostart    automatically start boxsync at login
       exclude      ignores/excludes a directory from syncing
+
+For developers:
+
+    $  box-linux-sync.git/bin/boxsync debug -v
 
 License
 -------
