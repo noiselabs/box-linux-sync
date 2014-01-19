@@ -19,39 +19,96 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-import os
-import sqlite3
+import os, errno
+from peewee import *
 
-from noiselabs.box.syncd import lazyproperty
+BOXSYNC_DATA_DIR = os.path.join(os.path.expanduser('~'), '.noiselabs/boxsync')
+BOXSYNC_DB = {
+    'config': SqliteDatabase(os.path.join(BOXSYNC_DATA_DIR, 'config.db'))
+}
+
+class Preference(Model):
+    """
+    Preferences like Box location and configuration of a network proxy.
+    """
+    key = CharField()
+    value = CharField()
+
+    class Meta:
+        database = BOXSYNC_DB['config']
+
+class SelectiveSync(Model):
+    """
+    Folders to exclude from the sync.
+    """
+    path = CharField()
+
+    class Meta:
+        database = BOXSYNC_DB['config']
+
 
 class BoxSyncConfig(object):
     """
     Configuration for the BoxSync daemon.
     """
-    _conn = None
+    _preferences = {
+        'box_location': os.path.join(os.path.expanduser('~'), 'Box'),
+        'proxy_setting': 'auto-detect',
+        'proxy_type': 'http',
+        'proxy_server': '',
+        'proxy_port': '8080',
+        'proxy_server_required_a_password': str(False),
+        'proxy_username': '',
+        'proxy_password': ''
+    }
+    _selective_sync = []
 
-    def __init__(self, basedir):
-        self.basedir = basedir
-        self.filepath = os.path.join(basedir, 'config.db')
+    def __init__(self):
+        self.init()
 
-    def get_cfgdir(self):
-        return self.basedir
+    def init(self):
+        try:
+            os.makedirs(BOXSYNC_DATA_DIR, 0700)
+        except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(BOXSYNC_DATA_DIR):
+                pass
+            else:
+                print("Can't create boxsyncd config dir at '%s'!" % BOXSYNC_DATA_DIR)
+                raise
 
-    def get_boxdir(self):
-        return os.path.join(os.path.expanduser('~'), 'Box')
+        BOXSYNC_DB['config'].create_table(Preference, True)
+        BOXSYNC_DB['config'].create_table(SelectiveSync, True)
+        os.chmod(BOXSYNC_DB['config'].database, 0600)
 
-    @lazyproperty
-    def conn(self):
-        if not os.path.isfile(self.filepath):
-            with open(self.filepath, 'w+') as f:
-                f.write('')
-            os.chmod(self.filepath, 0600)
-            self._conn = sqlite3.connect(self.filepath)
-        else:
-            self._conn = sqlite3.connect(self.filepath)
+        db_keys = []
+        for preference in Preference.select():
+            self._preferences[preference.key] = preference.value
+            db_keys.append(preference.key)
 
-        return self._conn
+        for k,v in self._preferences.iteritems():
+            if k not in db_keys:
+                Preference.create(key=k, value=v).save()
 
-    def _create_schema(self):
-       pass
+    def get_box_location(self):
+        return self._preferences['box_location']
+
+    def get_exclude_list(self):
+        return [d.path for d in SelectiveSync.select()]
+
+    def get_data_dir(self):
+        """
+        Return the path to directory used to hold boxsync data (configuration and cache).
+        @return:
+        """
+        return BOXSYNC_DATA_DIR
+
+    def exclude(self, exclude_list):
+        """
+        Paths are relative to Box location, not full paths!
+
+        @param exclude_list:
+        @return:
+        """
+        for dir in exclude_list:
+            SelectiveSync.create(path=dir).save()
 
