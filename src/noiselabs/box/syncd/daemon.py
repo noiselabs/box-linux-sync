@@ -27,12 +27,17 @@
 
 from __future__ import print_function
 
-import fnmatch, os, time, atexit
-from signal import SIGTERM
-import pyinotify
+import atexit
 import datetime
+import os
+import pyinotify
 import re
+import time
+
+from signal import SIGTERM
+from tornado.ioloop import IOLoop
 from types import *
+
 
 
 class Daemon(object):
@@ -210,7 +215,8 @@ class EventHandler(pyinotify.ProcessEvent):
         print("[%s] watched:'%s' filename:'%s' dest_file:'%s' tflags:'%s' nflags:'%s' src_path:'%s' src_rel_path:'%s'" %(
                 datetime.datetime.now(), event.path,  event.pathname, dfile, event.maskname, event.mask, src_path, src_rel_path))
 
-
+    def handle_read_callback(self, notifier):
+        pass
 
     def process_IN_ACCESS(self, event):
         self.run_command(event)
@@ -308,20 +314,13 @@ class SyncDaemon(Daemon):
         """
         self.bc.debug("[%s] Daemon started" % datetime.datetime.now())
         if self.bc.opts.verbose:
-            self.bc.debug('[%s] Exclude list: "%s"' %(datetime.datetime.now(), '", "'.join(self.exclude_list_relative)))
+            self.bc.debug('[%s] Exclude list: "%s"' % (datetime.datetime.now(), '", "'.join(self.exclude_list_relative)))
         self.index()
 
         wm = pyinotify.WatchManager()
+        ioloop = IOLoop.instance()
         handler = EventHandler(self, "", self.boxdir)
-
-        if self.async:
-            notifier = pyinotify.AsyncNotifier(wm, handler)
-            self.bc.debug("[%s] pyinotify: using AsyncNotifier" % datetime.datetime.now())
-        else:
-            # Start the notifier from a new thread, without doing anything as no directory or file are currently
-            # monitored yet.
-            notifier = pyinotify.ThreadedNotifier(wm, handler)
-            self.bc.debug("[%s] pyinotify: using ThreadedNotifier" % datetime.datetime.now())
+        notifier = pyinotify.TornadoAsyncNotifier(wm, ioloop, callback=handler.handle_read_callback, default_proc_fun=handler)
 
         # Adding exclusion list
         exclude_filter = pyinotify.ExcludeFilter(self.exclude_list_absolute)
@@ -329,11 +328,9 @@ class SyncDaemon(Daemon):
         wm.add_watch(self.boxdir, self.mask, rec=True, auto_add=True, exclude_filter=exclude_filter)
 
         self.bc.info("[%s] Monitoring started (type Ctrl^C to exit)" % datetime.datetime.now())
-        if self.async:
-            import asyncore
-            asyncore.loop()
-        else:
-            notifier.loop()
+        ioloop.start()
+        ioloop.close()
+        notifier.stop()
 
     def index(self):
         self.bc.info('[%s] Indexing "%s" ...' % (datetime.datetime.now(), self.boxdir))
