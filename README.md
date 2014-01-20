@@ -63,8 +63,7 @@ This application is licensed under the LGPLv3 License. See the [LICENSE file](ht
 
 Authors
 -------
-
-Vítor Brandão - <vitor@noiselabs.org> ~ [twitter.com/noiselabs](http://twitter.com/noiselabs) ~ [blog.noiselabs.org](http://blog.noiselabs.org)
+Vítor Brandão - <vitor@noiselabs.org> ~ [twitter.com/noiselabs](http://twitter.com/noiselabs) ~ [noiselabs.org](http://noiselabs.org)
 
 See also the list of [contributors](https://github.com/noiselabs/box-linux-sync/contributors) who participated in this project.
 
