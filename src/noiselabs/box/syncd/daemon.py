@@ -290,7 +290,7 @@ class SyncDaemon(Daemon):
     mask = pyinotify.IN_MODIFY | pyinotify.IN_ATTRIB | pyinotify.IN_MOVED_FROM | pyinotify.IN_MOVED_TO \
     | pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_UNMOUNT | pyinotify.IN_ONLYDIR | pyinotify.IN_EXCL_UNLINK
 
-    def __init__(self, cfg, bc):
+    def __init__(self, ioloop, cfg, bc):
         """
         Constructor.
 
@@ -298,6 +298,7 @@ class SyncDaemon(Daemon):
         @param bc:
         @return:
         """
+        self.ioloop = ioloop
         self.cfg = cfg
         self.bc = bc
         self.async = True # AsyncNotifier or ThreadedNotifier
@@ -318,9 +319,8 @@ class SyncDaemon(Daemon):
         self.index()
 
         wm = pyinotify.WatchManager()
-        ioloop = IOLoop.instance()
         handler = EventHandler(self, "", self.boxdir)
-        notifier = pyinotify.TornadoAsyncNotifier(wm, ioloop, callback=handler.handle_read_callback, default_proc_fun=handler)
+        notifier = pyinotify.TornadoAsyncNotifier(wm, self.ioloop, callback=handler.handle_read_callback, default_proc_fun=handler)
 
         # Adding exclusion list
         exclude_filter = pyinotify.ExcludeFilter(self.exclude_list_absolute)
@@ -328,8 +328,8 @@ class SyncDaemon(Daemon):
         wm.add_watch(self.boxdir, self.mask, rec=True, auto_add=True, exclude_filter=exclude_filter)
 
         self.bc.info("[%s] Monitoring started (type Ctrl^C to exit)" % datetime.datetime.now())
-        ioloop.start()
-        ioloop.close()
+        self.ioloop.start()
+        self.ioloop.close()
         notifier.stop()
 
     def index(self):

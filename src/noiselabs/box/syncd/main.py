@@ -21,17 +21,15 @@
 
 from __future__ import print_function
 
-import errno
-import os
-import subprocess
 import sys
 
 from optparse import OptionParser
 from noiselabs.box.syncd import __prog__, __version__
 from noiselabs.box.syncd.config import BoxSyncConfig
 from noiselabs.box.syncd.daemon import SyncDaemon
+from noiselabs.box.syncd.boxclient import BoxClient
 from noiselabs.box.webdav.output import BoxConsole
-from noiselabs.box.webdav.setup import BoxSetup
+from tornado.ioloop import IOLoop
 
 class NoiselabsOptionParser(OptionParser):
     """
@@ -159,8 +157,15 @@ Starts the %s daemon, %sd. If %sd is already running, this will do nothing.
     # Output helper
     bc = BoxConsole(opts, __prog__)
 
+    ioloop = IOLoop.instance()
     cfg = BoxSyncConfig()
-    syncd = SyncDaemon(cfg, bc)
+    syncd = SyncDaemon(ioloop, cfg, bc)
+
+    client = BoxClient(ioloop, cfg, bc)
+    client.authenticate()
+
+
+
     if 'start' == command:
         syncd.start()
     elif 'stop' == command:

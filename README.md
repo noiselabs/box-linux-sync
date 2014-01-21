@@ -12,14 +12,15 @@ Requirements
 ------------
 
 * [Python](http://www.python.org/download/releases/) 2.7 and up (may work on earlier versions, haven't tested).
-* [Pyinotify](https://github.com/seb-m/pyinotify)
 * [Box.py](https://github.com/sookasa/box.py)
 * [Peewee](https://github.com/coleifer/peewee)
+* [Pyinotify](https://github.com/seb-m/pyinotify)
+* [Tornado](http://www.tornadoweb.org/)
 
 Installation
 ------------
 
-    $ pip install pyinotify box.py peewee
+    $ pip install box.py peewee pyinotify tornado
     $ cd ~/path/of/your/choice
     $ git clone git://github.com/noiselabs/box-linux-sync.git
 

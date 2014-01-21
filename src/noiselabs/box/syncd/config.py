@@ -52,6 +52,10 @@ class BoxSyncConfig(object):
     Configuration for the BoxSync daemon.
     """
     _preferences = {
+        'app_name': 'box-linux-sync',
+        'api_key': 'ot76edrq3atpfb6x11t88bsuzf9oq8cb',
+        'redirect_uri': 'http://127.0.0.1:8888/',
+        'authorization_code': '',
         'box_location': os.path.join(os.path.expanduser('~'), 'Box'),
         'proxy_setting': 'auto-detect',
         'proxy_type': 'http',
@@ -111,4 +115,11 @@ class BoxSyncConfig(object):
         """
         for dir in exclude_list:
             SelectiveSync.create(path=dir).save()
+
+    def get(self, key):
+        return self._preferences[key]
+
+    def save(self, key, value):
+        self._preferences[key] = value
+
 

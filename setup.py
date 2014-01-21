@@ -11,7 +11,11 @@ install_requires = [
     # List your project dependencies here.
     # For more details, see:
     # http://pythonhosted.org/setuptools/setuptools.html#declaring-dependencies
-    pyinotify >= 0.9.4
+    box.py >= 1.2.5,
+    peewee >= 2.1.7,
+    pyinotify >= 0.9.4,
+    tornado >= 3.2
+
 ]
 
 
