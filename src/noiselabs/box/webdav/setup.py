@@ -198,10 +198,10 @@ class BoxSetup(object):
 
     def get_box_dir(self):
         try:
-            box_dir = self.config.cfgparser.get("main", "box_dir")
+            box_dir = self.config.cfgparser.get("boxsync_main", "box_dir")
         except ConfigParser.NoSectionError:
             self.check_config()
-        box_dir = self.config.cfgparser.get("main", "box_dir")
+        box_dir = self.config.cfgparser.get("boxsync_main", "box_dir")
         if not os.path.isabs(box_dir):
             box_dir = os.path.join(self.home_dir, box_dir)
         return box_dir

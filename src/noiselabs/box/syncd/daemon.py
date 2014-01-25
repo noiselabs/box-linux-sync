@@ -33,6 +33,7 @@ import os
 import pyinotify
 import re
 import time
+import sys
 
 from signal import SIGTERM
 from tornado.ioloop import IOLoop
@@ -290,17 +291,15 @@ class SyncDaemon(Daemon):
     mask = pyinotify.IN_MODIFY | pyinotify.IN_ATTRIB | pyinotify.IN_MOVED_FROM | pyinotify.IN_MOVED_TO \
     | pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_UNMOUNT | pyinotify.IN_ONLYDIR | pyinotify.IN_EXCL_UNLINK
 
-    def __init__(self, ioloop, cfg, bc):
+    def __init__(self, ioloop, cfg):
         """
         Constructor.
 
         @param cfg:
-        @param bc:
         @return:
         """
         self.ioloop = ioloop
         self.cfg = cfg
-        self.bc = bc
         self.async = True # AsyncNotifier or ThreadedNotifier
         self.boxdir = self.cfg.get_box_location()
         super(SyncDaemon,self).__init__(os.path.join(self.cfg.get_data_dir(), 'boxsyncd.pid'))
@@ -308,14 +307,26 @@ class SyncDaemon(Daemon):
         self.exclude_list_relative = self.cfg.get_exclude_list()
         self.exclude_list_absolute = [os.path.join(self.boxdir, r) for r in self.exclude_list_relative]
 
+    def is_running(self):
+        pidfile = os.path.expanduser(os.path.join(self.cfg.get_data_dir(), 'boxsyncd.pid'))
+
+        try:
+            with open(pidfile, "r") as f:
+                pid = int(f.read())
+            with open("/proc/%d/cmdline" % pid, "r") as f:
+                cmdline = f.read().lower()
+        except:
+            cmdline = ""
+
+        return "boxsync" in cmdline
+
     def run(self):
         """
 
         @return:
         """
-        self.bc.debug("[%s] Daemon started" % datetime.datetime.now())
-        if self.bc.opts.verbose:
-            self.bc.debug('[%s] Exclude list: "%s"' % (datetime.datetime.now(), '", "'.join(self.exclude_list_relative)))
+        print("[%s] Daemon started" % datetime.datetime.now())
+        print('[%s] Exclude list: "%s"' % (datetime.datetime.now(), '", "'.join(self.exclude_list_relative)))
         self.index()
 
         wm = pyinotify.WatchManager()
@@ -327,24 +338,24 @@ class SyncDaemon(Daemon):
         # Start watching a path
         wm.add_watch(self.boxdir, self.mask, rec=True, auto_add=True, exclude_filter=exclude_filter)
 
-        self.bc.info("[%s] Monitoring started (type Ctrl^C to exit)" % datetime.datetime.now())
+        print("[%s] Monitoring started (type Ctrl^C to exit)" % datetime.datetime.now())
         self.ioloop.start()
         self.ioloop.close()
         notifier.stop()
 
     def index(self):
-        self.bc.info('[%s] Indexing "%s" ...' % (datetime.datetime.now(), self.boxdir))
+        print('[%s] Indexing "%s" ...' % (datetime.datetime.now(), self.boxdir))
         prefix_len = len(self.boxdir)
         for root, dirnames, filenames in os.walk(self.boxdir):
             root = root[prefix_len:].lstrip('/')
             if root in self.exclude_list_relative:
-                self.bc.debug('[%s] -  Skipped "%s" (selective sync)' % (datetime.datetime.now(), root))
+                print('[%s] -  Skipped "%s" (selective sync)' % (datetime.datetime.now(), root))
                 continue
             else:
                 for d in dirnames:
                     dir = os.path.join(root, d)
                     if dir not in self.exclude_list_relative:
-                        self.bc.debug('[%s] d  %s' % (datetime.datetime.now(), dir))
+                        print('[%s] d  %s' % (datetime.datetime.now(), dir))
                 for file in filenames:
-                    self.bc.debug('[%s] f  %s' % (datetime.datetime.now(), os.path.join(root, file)))
+                    print('[%s] f  %s' % (datetime.datetime.now(), os.path.join(root, file)))
 

@@ -37,6 +37,7 @@ class AuthServer(object):
         self.ioloop = ioloop
 
     def handle_request(self, request):
+        print(self.request)
         if 'state' in request.query_arguments and request.query_arguments['state'] == 'granted' \
             and 'code' in request.query_arguments:
             code = request.query_arguments['code']

@@ -33,7 +33,7 @@ class BoxConfig(object):
     Handles noiselabs/box-linux-sync configuration file.
     """
     filepath = os.path.join(BASEDIR, 'box-sync.cfg')
-    options = {'main': ['box_dir', 'use_davfs']}
+    options = {'boxsync_main': ['box_dir', 'use_davfs']}
 
     def __init__(self, box_console):
         self.out = box_console
@@ -73,7 +73,7 @@ class BoxConfig(object):
 
     def write_default_config(self, filepath):
         data = "; " + os.path.basename(filepath) + "\n" + \
-        "[main]\n\n" + \
+        "[boxsync_main]\n\n" + \
         "; Path to your Box sync dir. Use a relative path to place this dir\n" + \
         "; inside $HOME or an absolute path. Default: Box\n" + \
         "box_dir = Box\n\n" + \

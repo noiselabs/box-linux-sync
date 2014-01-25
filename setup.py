@@ -46,8 +46,8 @@ setup(name='box-linux-sync',
     install_requires=install_requires,
     entry_points={
         'console_scripts':
-            ['boxsync=noiselabs.box:syncd:sync_main',
+            ['boxsync=noiselabs.box:syncd:boxsync_main',
              'boxsyncd=noiselabs.box:syncd:syncd_main',
-             'boxsync-webdav=noiselabs.box:webdav:main']
+             'boxsync-webdav=noiselabs.box:webdav:boxsync_main']
     }
 )

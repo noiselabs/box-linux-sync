@@ -18,40 +18,64 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
+#
+#
+# Code in this module adapted from:
+# - https://github.com/gentoo/portage/blob/master/bin/emerge (Copyright 2006-2013 Gentoo Foundation)
 
+import platform
 import signal
 import sys
-# This block ensures that ^C interrupts are handled quietly.
-try:
 
-    def exithandler(signum,frame):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
+# This block ensures that ^C interrupts are handled quietly. We handle
+# KeyboardInterrupt instead of installing a SIGINT handler, since
+# exiting from signal handlers intermittently causes python to ignore
+# the SystemExit exception with a message like this:
+# Exception SystemExit: 130 in <function remove at 0x7fd2146c1320> ignored
+try:
+    def exithandler(signum, _frame):
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         sys.exit(128 + signum)
 
-    signal.signal(signal.SIGINT, exithandler)
     signal.signal(signal.SIGTERM, exithandler)
     # Prevent "[Errno 32] Broken pipe" exceptions when
     # writing to a pipe.
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
+    def debug_signal(_signum, _frame):
+        import pdb
+        pdb.set_trace()
+
+    if platform.python_implementation() == 'Jython':
+        debug_signum = signal.SIGUSR2
+    else:
+        debug_signum = signal.SIGUSR1
+
+    signal.signal(debug_signum, debug_signal)
+
+    try:
+        from noiselabs.box.syncd.main import boxsync_main
+    except ImportError:
+        from os import path as osp
+        sys.path.insert(0, osp.join(osp.dirname(osp.dirname(osp.realpath(__file__))), 'src'))
+        from noiselabs.box.syncd.main import boxsync_main
+
+    if __name__ == "__main__":
+        try:
+            ret = boxsync_main(sys.argv)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception:
+            import traceback
+            tb_str = traceback.format_exc()
+            sys.stderr.write(tb_str)
+            sys.exit(1)
+
+        if ret is not None:
+            sys.exit(ret)
+
 except KeyboardInterrupt:
-    sys.exit(128 + signal.SIGINT)
-
-def debug_signal(signum, frame):
-    import pdb
-    pdb.set_trace()
-
-signal.signal(signal.SIGUSR1, debug_signal)
-
-try:
-    from noiselabs.box.syncd.main import box_main
-except ImportError:
-    from os import path as osp
-    sys.path.insert(0, osp.join(osp.dirname(osp.dirname(osp.realpath(__file__))), "src"))
-    from noiselabs.box.syncd.main import sync_main
-
-if __name__ == "__main__":
-    import sys
-    retval = sync_main()
-    sys.exit(retval)
+        sys.stderr.write("\n\nExiting on signal %(signal)s\n" %
+                {"signal": signal.SIGINT})
+        sys.stderr.flush()
+        sys.exit(128 + signal.SIGINT)
