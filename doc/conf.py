@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'box-linux-sync'
-copyright = u'2012-2013, Vítor Brandão'
+copyright = u'2012-2014, Vítor Brandão'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -91,7 +91,8 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'nature'
+html_theme = 'default'
+RTD_NEW_THEME = True
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -110,7 +111,7 @@ html_theme = 'nature'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = '_static/images/boxsync-logo.png'
+html_logo = '_static/images/box-logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -248,7 +249,7 @@ texinfo_documents = [
 epub_title = u'box-linux-sync'
 epub_author = u'Vítor Brandão'
 epub_publisher = u'Vítor Brandão'
-epub_copyright = u'2012-2013, Vítor Brandão'
+epub_copyright = u'2012-2014, Vítor Brandão'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
