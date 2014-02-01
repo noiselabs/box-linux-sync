@@ -19,20 +19,20 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from noiselabs.box.pms.pms import BasePMS
+from noiselabs.boxsync.pms.pms import BasePMS
 
-class Pacman(BasePMS):
-    """Pacman is a software package manager, developed as part of the Arch Linux
-    distribution."""
+class APT(BasePMS):
+    """The Advanced Packaging Tool used in the Debian family of Linux operating
+    systems (Ubuntu included)."""
 
     def __str__(self):
-        return 'pacman'
+        return 'APT'
 
     def search(self, pkg):
-        return "pacman -Ss %s" % pkg
+        return "apt-cache search %s" % pkg
 
     def install(self, pkg):
-        return "pacman -S %s" % pkg
+        return "apt-get install %s" % pkg
 
     def remove(self, pkg):
-        return "pacman -R %s" % pkg
+        return "apt-get remove %s" % pkg

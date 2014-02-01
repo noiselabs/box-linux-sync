@@ -28,9 +28,9 @@ import time
 import sys
 import types
 
-from noiselabs.box.webdav.config import BASEDIR
-from noiselabs.box.webdav.utils import create_file
-from noiselabs.box.webdav.ansistrm import ColorizingStreamHandler
+from noiselabs.boxsync.webdav.config import BASEDIR
+from noiselabs.boxsync.webdav.utils import create_file
+from noiselabs.boxsync.webdav.ansistrm import ColorizingStreamHandler
 
 ################################################################################
 ##
@@ -176,7 +176,7 @@ class BoxConsole(object):
 
         # create file handler
         if hasattr(self.opts, 'log') and self.opts.log:
-            logfile = os.path.join(BASEDIR, 'box-sync.log')
+            logfile = os.path.join(BASEDIR, 'boxsync-sync.log')
             create_file(logfile)
             fh = logging.FileHandler(logfile)
             fh.setLevel(logging.DEBUG)

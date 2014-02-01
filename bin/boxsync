@@ -54,11 +54,11 @@ try:
     signal.signal(debug_signum, debug_signal)
 
     try:
-        from noiselabs.box.syncd.main import boxsync_main
+        from noiselabs.boxsync.main import boxsync_main
     except ImportError:
         from os import path as osp
         sys.path.insert(0, osp.join(osp.dirname(osp.dirname(osp.realpath(__file__))), 'src'))
-        from noiselabs.box.syncd.main import boxsync_main
+        from noiselabs.boxsync.main import boxsync_main
 
     if __name__ == "__main__":
         try:

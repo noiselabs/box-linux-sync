@@ -33,7 +33,7 @@ setup(name='box-linux-sync',
         'Topic :: Communications :: File Sharing',
         'Topic :: Utilities'
     ],
-    keywords='box sync noiselabs',
+    keywords='boxsync sync noiselabs',
     author='V\xc3\xadtor Brand\xc3\xa3o',
     author_email='vitor@noiselabs.org',
     url='https://github.com/noiselabs/box-linux-sync',
@@ -46,8 +46,8 @@ setup(name='box-linux-sync',
     install_requires=install_requires,
     entry_points={
         'console_scripts':
-            ['boxsync=noiselabs.box:syncd:boxsync_main',
-             'boxsyncd=noiselabs.box:syncd:syncd_main',
-             'boxsync-webdav=noiselabs.box:webdav:boxsync_main']
+            ['boxsync=noiselabs.boxsync:syncd:boxsync_main',
+             'boxsyncd=noiselabs.boxsync:syncd:syncd_main',
+             'boxsync-webdav=noiselabs.boxsync:webdav:boxsync_main']
     }
 )

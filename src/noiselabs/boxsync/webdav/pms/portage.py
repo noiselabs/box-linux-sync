@@ -3,7 +3,7 @@
 #
 # This file is part of box-linux-sync.
 #
-# Copyright (C) 2012-2014 Vítor Brandão <vitor@noiselabs.org>
+# Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
 # box-linux-sync is free software; you can redistribute it  and/or modify it
 # under the terms of the GNU Lesser General Public License as published by the
@@ -19,9 +19,19 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-__title__ = 'box-linux-sync'
-__prog__ = 'box-syn-webdav'
-__version__ = '0.1.0'
-__author__ = 'Vítor Brandão'
-__license__ = 'LGPL-3'
-__copyright__ = u'Copyright 2012-2014 Vítor Brandão'
+from noiselabs.boxsync.pms.pms import BasePMS
+
+class Portage(BasePMS):
+    """Portage is a package management system used by Gentoo Linux."""
+
+    def __str__(self):
+        return 'Portage'
+
+    def search(self, pkg):
+        return "emerge  --searchdesc %s" % pkg
+
+    def install(self, pkg):
+        return "emerge %s" % pkg
+
+    def remove(self, pkg):
+        return "emerge --unmerge %s" % pkg

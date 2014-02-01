@@ -31,19 +31,19 @@ def get_pms():
 
     (distname,version,id) = platform.linux_distribution(full_distribution_name=False)
     if distname == 'gentoo':
-        from noiselabs.box.pms.portage import Portage
+        from noiselabs.boxsync.pms.portage import Portage
         return Portage()
     elif distname in ['debian', 'ubuntu']:
-        from noiselabs.box.pms.apt import APT
+        from noiselabs.boxsync.pms.apt import APT
         return APT()
     elif distname in ['SuSE', 'fedora', 'redhat', 'centos', 'yellowdog', 'UnitedLinux', 'turbolinux']:
-        from noiselabs.box.pms.yum import YUM
+        from noiselabs.boxsync.pms.yum import YUM
         return YUM()
     elif distname == 'slackware':
-        from noiselabs.box.pms.slackpkg import Slackpkg
+        from noiselabs.boxsync.pms.slackpkg import Slackpkg
         return Slackpkg()
     elif distname == 'archlinux':
-        from noiselabs.box.pms.pacman import Pacman
+        from noiselabs.boxsync.pms.pacman import Pacman
         return Pacman()
     else:
         return False

@@ -22,16 +22,16 @@
 import os
 import ConfigParser
 
-from noiselabs.box.webdav import __prog__, __version__
-from noiselabs.box.webdav.utils import create_file
+from noiselabs.boxsync.webdav import __prog__, __version__
+from noiselabs.boxsync.webdav.utils import create_file
 
-BASEDIR = os.path.expanduser('~/.noiselabs/box')
+BASEDIR = os.path.expanduser('~/.noiselabs/boxsync')
 
 class BoxConfig(object):
     """
     Handles noiselabs/box-linux-sync configuration file.
     """
-    filepath = os.path.join(BASEDIR, 'box-sync.cfg')
+    filepath = os.path.join(BASEDIR, 'boxsync-sync.cfg')
     options = {'boxsync_main': ['box_dir', 'use_davfs']}
 
     def __init__(self, box_console):

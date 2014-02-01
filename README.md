@@ -31,31 +31,26 @@ Usage
 
     $ box-linux-sync.git/bin/boxsync help
 
-    Usage: boxsync [options] <command>
+    BoxSync command-line interface
 
-    boxsync command-line interface
-
-    Options:
-      --version      show program's version number and exit
-      -h, --help     show this help message and exit
-      -v, --verbose  be verbose
+    commands:
 
     Note: use boxsync help <command> to view usage for a specific command.
 
-    Commands:
-      status       get current status of the boxsyncd
-      help         provide help
-      stop         stop boxsyncd
-      running      return whether boxsyncd is running
-      start        start boxsyncd
-      filestatus   get current sync status of one or more files
-      ls           list directory contents with current sync status
-      autostart    automatically start boxsync at login
-      exclude      ignores/excludes a directory from syncing
+     status       get current status of the boxsyncd
+     help         provide help
+     stop         stop boxsyncd
+     running      return whether boxsync is running
+     start        start boxsyncd
+     filestatus   get current sync status of one or more files
+     ls           list directory contents with current sync status
+     debug        run boxsyncd in debug mode
+     exclude      ignores/excludes a directory from syncing
+
 
 For developers:
 
-    $  box-linux-sync.git/bin/boxsync debug -v
+    $  box-linux-sync.git/bin/boxsync debug
 
 License
 -------

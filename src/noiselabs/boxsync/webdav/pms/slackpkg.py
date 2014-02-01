@@ -19,19 +19,20 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from noiselabs.box.pms.pms import BasePMS
+from noiselabs.boxsync.pms.pms import BasePMS
 
-class Portage(BasePMS):
-    """Portage is a package management system used by Gentoo Linux."""
+class Slackpkg(BasePMS):
+    """slackpkg is a software tool for installing or upgrading packages
+    automatically through a network or over the Internet for Slackware."""
 
     def __str__(self):
-        return 'Portage'
+        return 'slackpkg'
 
     def search(self, pkg):
-        return "emerge  --searchdesc %s" % pkg
+        return "slackpkg search %s" % pkg
 
     def install(self, pkg):
-        return "emerge %s" % pkg
+        return "slackpkg install %s" % pkg
 
     def remove(self, pkg):
-        return "emerge --unmerge %s" % pkg
+        return "slackpkg remove %s" % pkg

@@ -35,14 +35,12 @@ import time
 from contextlib import closing
 from posixpath import curdir, sep, pardir, join, abspath, commonprefix
 
-from noiselabs.box.syncd import __prog__, __title__, __version__
-from noiselabs.box.syncd.config import BoxSyncConfig
-from noiselabs.box.syncd.daemon import SyncDaemon
-from noiselabs.box.syncd.boxclient import BoxClient
-from noiselabs.box.webdav.output import BoxConsole
+from noiselabs.boxsync.syncd.config import BoxSyncConfig
+from noiselabs.boxsync.syncd.daemon import SyncDaemon
+from .defaults import *
+from .logger import start_logger
 from tornado.ioloop import IOLoop
 
-PARENT_DIR = os.path.expanduser("~")
 
 enc = locale.getpreferredencoding()
 
@@ -85,7 +83,7 @@ def console_flush(f=sys.stdout):
     f.flush()
 
 def is_boxsync_running():
-    pidfile = os.path.expanduser("~/.noiselabs/boxsync/boxsyncd.pid")
+    pidfile = os.path.join(DEFAULT_BOXSYNC_DATA_PATH, 'boxsyncd.pid')
 
     try:
         with open(pidfile, "r") as f:
@@ -137,7 +135,7 @@ class BoxSyncCommand(object):
         self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.s.settimeout(timeout)
         try:
-            self.s.connect(os.path.expanduser(u'~/.noiselabs/boxsync/command_socket'))
+            self.s.connect(os.path.join(DEFAULT_BOXSYNC_DATA_PATH, 'command_socket'))
         except socket.error, e:
             raise BoxSyncCommand.CouldntConnectError()
         self.f = self.s.makefile("r+", 4096)
@@ -269,6 +267,9 @@ def start_boxsync():
     bs_path = get_boxsyncd_path()
     if os.access(bs_path, os.X_OK):
         f = open("/dev/null", "w")
+        from .boxsyncd import main
+        main()
+        return True
         # we don't reap the child because we're gonna die anyway, let init do it
         a = subprocess.Popen([bs_path], preexec_fn=os.setsid, cwd=os.path.expanduser("~"),
                              stderr=sys.stderr, stdout=f, close_fds=True)
@@ -833,6 +834,8 @@ def boxsync_main(argv):
     globaloptionparser = optparse.OptionParser()
     globaloptionparser.parse_args(argv[0:i])
 
+    start_logger()
+
     # now dispatch and run
     result = None
     if argv[i] in commands:
@@ -845,4 +848,3 @@ def boxsync_main(argv):
 
     # done
     return result
-

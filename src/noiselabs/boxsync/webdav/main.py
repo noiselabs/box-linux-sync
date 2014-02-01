@@ -25,9 +25,9 @@ import subprocess
 import sys
 
 from optparse import OptionParser
-from noiselabs.box.webdav import __prog__, __version__
-from noiselabs.box.webdav.output import BoxConsole
-from noiselabs.box.webdav.setup import BoxSetup
+from noiselabs.boxsync.webdav import __prog__, __version__
+from noiselabs.boxsync.webdav.output import BoxConsole
+from noiselabs.boxsync.webdav.setup import BoxSetup
 
 class NoiselabsOptionParser(OptionParser):
     """
@@ -53,7 +53,7 @@ def box_main(args=None):
 
     force_help = "forces the execution of every procedure even if the component " +\
     "is already installed and/or configured"
-    log_help = "log output to ~/.noiselabs/box/box-sync.log"
+    log_help = "log output to ~/.noiselabs/boxsync/boxsync-sync.log"
 
     parser = NoiselabsOptionParser(
         usage=usage,
@@ -63,16 +63,16 @@ def box_main(args=None):
         epilog=
 """
 Commands:
-  check       check box-sync setup and dependencies
+  check       check boxsync-sync setup and dependencies
   setup       launch a setup wizard
   start       start sync service
   stop        stop sync service
   help        show this help message and exit
-  uninstall   removes all configuration and cache files installed by box-sync
+  uninstall   removes all configuration and cache files installed by boxsync-sync
 
 Workflow:
-  $ box-sync check && box-sync setup
-  $ box-sync start
+  $ boxsync-sync check && boxsync-sync setup
+  $ boxsync-sync start
 """
     )
 

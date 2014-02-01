@@ -38,7 +38,7 @@ def deprecated(func):
     .. code-block:: python
         :emphasize-lines: 4
 
-        from noiselabs.box.syncd import deprecated
+        from noiselabs.boxsync.syncd import deprecated
 
         class SomeClass(object):
             @deprecated
@@ -65,7 +65,7 @@ class lazyproperty(object):
     .. code-block:: python
         :emphasize-lines: 4
 
-        from noiselabs.box.syncd import lazyproperty
+        from noiselabs.boxsync.syncd import lazyproperty
 
         class SomeClass(object):
             @lazyproperty

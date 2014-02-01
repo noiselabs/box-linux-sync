@@ -19,20 +19,20 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from noiselabs.box.pms.pms import BasePMS
+from noiselabs.boxsync.pms.pms import BasePMS
 
-class APT(BasePMS):
-    """The Advanced Packaging Tool used in the Debian family of Linux operating
-    systems (Ubuntu included)."""
+class YUM(BasePMS):
+    """The Yellowdog Updater, Modified (YUM) is an open-source command-line
+    package-management utility for RPM-compatible Linux operating systems"""
 
     def __str__(self):
-        return 'APT'
+        return 'Yum'
 
     def search(self, pkg):
-        return "apt-cache search %s" % pkg
+        return "yum search %s" % pkg
 
     def install(self, pkg):
-        return "apt-get install %s" % pkg
+        return "yum install %s" % pkg
 
     def remove(self, pkg):
-        return "apt-get remove %s" % pkg
+        return "yum remove %s" % pkg

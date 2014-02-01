@@ -62,7 +62,7 @@ Edit ``~/.noiselabs/box/box-sync.cfg`` to fit your preferences:
 .. code-block:: cfg
 
     ; box-sync.cfg
-    [main]
+    [boxsync_main]
 
     ; Path to your Box sync dir. Use a relative path to place this dir
     ; inside $HOME or an absolute path. Default: Box

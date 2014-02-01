@@ -77,7 +77,7 @@ else:
     def quote (c):
         return c
 
-cmd = 'from setuptools.command.easy_install import main; main()'
+cmd = 'from setuptools.command.easy_install import boxsync_main; boxsync_main()'
 ws  = pkg_resources.working_set
 
 if USE_DISTRIBUTE:

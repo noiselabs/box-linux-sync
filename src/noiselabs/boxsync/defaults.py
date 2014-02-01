@@ -19,20 +19,15 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from noiselabs.box.pms.pms import BasePMS
+import unicodedata
+import os
 
-class Slackpkg(BasePMS):
-    """slackpkg is a software tool for installing or upgrading packages
-    automatically through a network or over the Internet for Slackware."""
+# Core paths
+DEFAULT_BOX_PATH = unicodedata.normalize('NFC', os.path.expanduser(u'~/Box'))
+DEFAULT_BOXSYNC_DATA_PATH = unicodedata.normalize('NFC', os.path.expanduser(u'~/.noiselabs/boxsync'))
 
-    def __str__(self):
-        return 'slackpkg'
+# Databases
+DEFAULT_CONFIG_DB_PATH = os.path.join(DEFAULT_BOXSYNC_DATA_PATH, 'config.db')
 
-    def search(self, pkg):
-        return "slackpkg search %s" % pkg
-
-    def install(self, pkg):
-        return "slackpkg install %s" % pkg
-
-    def remove(self, pkg):
-        return "slackpkg remove %s" % pkg
+# Log file
+DEFAULT_LOG_PATH = os.path.join(DEFAULT_BOXSYNC_DATA_PATH, 'boxsyncd.log')

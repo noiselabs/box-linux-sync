@@ -52,13 +52,13 @@ try:
     signal.signal(debug_signum, debug_signal)
 
     try:
-        from noiselabs.box.syncd.daemon import SyncDaemon
-        from noiselabs.box.syncd.config import BoxSyncConfig
+        from noiselabs.boxsync.syncd.daemon import SyncDaemon
+        from noiselabs.boxsync.syncd.config import BoxSyncConfig
     except ImportError:
         from os import path as osp
         sys.path.insert(0, osp.join(osp.dirname(osp.dirname(osp.realpath(__file__))), 'src'))
-        from noiselabs.box.syncd.daemon import SyncDaemon
-        from noiselabs.box.syncd.config import BoxSyncConfig
+        from noiselabs.boxsync.syncd.daemon import SyncDaemon
+        from noiselabs.boxsync.syncd.config import BoxSyncConfig
 
     if __name__ == "__main__":
         ioloop = IOLoop.instance()
@@ -66,10 +66,16 @@ try:
         syncd = SyncDaemon(ioloop, cfg)
 
         try:
-            if len(sys.argv) > 1 and sys.argv[1] in ['debug', 'start', 'stop']:
-                ret = getattr(syncd, sys.argv[1])()
+            if len(sys.argv) > 1:
+                if sys.argv[1] in ['start', 'stop']:
+                    method = sys.argv[1]
+                elif 'debug' == sys.argv[1]:
+                    method = 'run'
+                else:
+                    method = 'start'
             else:
-                ret = syncd.start()
+                method = 'start'
+            ret = getattr(syncd, method)()
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception:
