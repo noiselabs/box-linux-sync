@@ -6,35 +6,29 @@
 box-linux-sync - A naïve `Box.com <http://box.com/>`_ Linux Client
 ==================================================================
 
-An unofficial attempt to create a Linux synchronization client because
-Box.com does not provide one.
+An unofficial attempt to create a Linux synchronization client because Box.com does not provide one.
 
-Overview
---------
+BIG FAT WARNING
+---------------
 
-File synchronization is currently done using the WebDAV interface
-provided by Box.com. There is also a `Python
-API <https://github.com/box/box-python-sdk>`_ available but I haven't
-started to mess with it.
+This is work in progress. The daemon is not yet functional. But suggestions and patches are welcome ;) Thanks!
 
 Requirements
 ------------
 
 -  `Python <http://www.python.org/download/releases/>`_ 2.7 and up (may
    work on earlier versions, haven't tested).
--  `Davfs2 <http://savannah.nongnu.org/projects/davfs2>`_. To install it
-   use:
-
-   -  Debian, Ubuntu: ``apt-get install davfs2``
-   -  Red Hat, SuSE, Fedora: ``yum install davfs2``
-   -  Gentoo: ``emerge davfs2``
-   -  ArchLinux: ``pacman -S davfs2``
+- `Box.py  <https://github.com/sookasa/box.py>`_
+- `Peewee <https://github.com/coleifer/peewee)
+- `Pyinotify <https://github.com/seb-m/pyinotify>`_
+- `Tornado <http://www.tornadoweb.org/>`_
 
 Installation
 ------------
 
 .. code-block:: bash
 
+    $ pip install box.py peewee pyinotify tornado
     $ cd ~/path/of/your/choice
     $ git clone git://github.com/noiselabs/box-linux-sync.git
 
@@ -49,54 +43,28 @@ Check environment and setup ``box-sync`` and it's dependencies:
 
 .. code-block:: bash
 
-    $ cd ~/path/to/box-linux-sync/bin
-    $ ./box-sync check && ./box-sync setup
+    $ box-linux-sync.git/bin/boxsync help
 
-Edit ``~/.noiselabs/box/box-sync.cfg`` to fit your preferences:
+    BoxSync command-line interface
 
+    commands:
 
-.. code-block:: bash
+    Note: use boxsync help <command> to view usage for a specific command.
 
-    $ vim ~/.noiselabs/box/box-sync.cfg
-
-.. code-block:: cfg
-
-    ; box-sync.cfg
-    [boxsync_main]
-
-    ; Path to your Box sync dir. Use a relative path to place this dir
-    ; inside $HOME or an absolute path. Default: Box
-    box_dir = Box
-
-    ; Wether to use a WebDAV filesystem to synchronize your local and
-    ; remote files. Default: true
-    use_davfs = true
-
-Start synchronization via Davfs:
+     status       get current status of the boxsyncd
+     help         provide help
+     stop         stop boxsyncd
+     running      return whether boxsync is running
+     start        start boxsyncd
+     filestatus   get current sync status of one or more files
+     ls           list directory contents with current sync status
+     debug        run boxsyncd in debug mode
+     exclude      ignores/excludes a directory from syncing
 
 
-.. code-block:: bash
+For developers::
 
-    $ ./box-sync start
-
-Stop synchronization:
-
-
-.. code-block:: bash
-
-    $ ./box-sync stop
-
-Send ``box-sync`` into oblivion when you get tired of it.
-
-
-This just removes ``box-sync`` configuration files and the repository,
-not your personal Box.com files (unless you have configured the
-``box_sync`` dir to be inside ``~/.noiselabs``).
-
-.. code-block:: bash
-
-    $ ./box-sync uninstall
-    $ rm ~/path/to/box-linux-sync
+    $  box-linux-sync.git/bin/boxsync debug
 
 License
 -------
@@ -110,7 +78,7 @@ Authors
 
 Vítor Brandão - vitor@noiselabs.org ~
 `twitter.com/noiselabs <http://twitter.com/noiselabs>`_ ~
-`blog.noiselabs.org <http://blog.noiselabs.org>`_
+`noiselabs.org <http://noiselabs.org>`_
 
 See also the list of
 `contributors <https://github.com/noiselabs/box-linux-sync/contributors>`_
