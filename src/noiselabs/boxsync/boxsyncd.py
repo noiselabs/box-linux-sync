@@ -19,16 +19,28 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
+import getopt
+import sys
+
 from .config import ConfigDict
 from .db import DatabaseManager
 from .defaults import *
+from .logger import GlobalLogger
+from .util import FilesystemUtils, partition
 
-class BoxSyncDaemon(object):
+__all__ = ('BoxSyncd')
 
-    def __init__(self):
+class BoxSyncd(object):
+
+    def __init__(self, argv):
+        self.argv = list([arg.decode('utf-8') for arg in argv])
         self.config = None
-        self.data_path = DEFAULT_BOXSYNC_DATA_PATH
+        self.boxsync_data_path = DEFAULT_BOXSYNC_DATA_PATH
+        self.debug = False
         self.default_box_path = DEFAULT_BOX_PATH
+        self.default_box_folder_name = DEFAULT_BOX_FOLDER_NAME
+        self.fs = FilesystemUtils()
+        self.verbose = False
 
     def get_box_path(self):
         path = None
@@ -38,10 +50,35 @@ class BoxSyncDaemon(object):
         return path if path else self.default_box_path
 
     def run(self):
-        db = DatabaseManager(DEFAULT_BOXSYNC_DATA_PATH)
+        # Parse command line options (flags)
+        flags, logthis = self._parse_command_line()
+
+        # Setup the logger
+        self.verbose = u'--verbose' in flags
+        self.debug = u'--debug' in flags
+        gl = GlobalLogger(verbose=self.verbose, debug=self.debug)
+        self.logger = gl.getLogger()
+        self.logger.info('BoxSync starting...')
+        for msg in logthis:
+            self.logger.debug(msg)
+
+        # Create the boxsync data dir
+        self.fs.makedirs(self.boxsync_data_path, 448)
+
+
+    def _parse_command_line(self):
+        log_msg = []
+        log_msg.append('Command line: %r' % self.argv)
+        flags, self.argv = partition(lambda arg: arg.startswith('--'), self.argv)
+        log_msg.append('Command flags: %r' % flags)
+        optlist, remaining = getopt.getopt(flags, '', [
+            'debug',
+            'key=',
+            'verbose'])
+        self.argv += remaining
+        return (dict(optlist), log_msg)
 
 
 def main():
-    bsd = BoxSyncDaemon()
-    bsd.config = ConfigDict()
+    bsd = BoxSyncd(sys.argv)
     bsd.run()

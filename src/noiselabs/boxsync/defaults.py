@@ -19,11 +19,16 @@
 # License along with box-linux-sync; if not, see
 # <http://www.gnu.org/licenses/>.
 
+import locale
 import unicodedata
 import os
 
+
+DEFAULT_BOX_FOLDER_NAME = 'Box'
+
 # Core paths
-DEFAULT_BOX_PATH = unicodedata.normalize('NFC', os.path.expanduser(u'~/Box'))
+DEFAULT_BOX_PATH = unicodedata.normalize('NFC', os.path.expanduser(u'~/' +
+                                                                   DEFAULT_BOX_FOLDER_NAME))
 DEFAULT_BOXSYNC_DATA_PATH = unicodedata.normalize('NFC', os.path.expanduser(u'~/.noiselabs/boxsync'))
 
 # Databases
@@ -31,3 +36,5 @@ DEFAULT_CONFIG_DB_PATH = os.path.join(DEFAULT_BOXSYNC_DATA_PATH, 'config.db')
 
 # Log file
 DEFAULT_LOG_PATH = os.path.join(DEFAULT_BOXSYNC_DATA_PATH, 'boxsyncd.log')
+
+ENCODING = locale.getpreferredencoding()

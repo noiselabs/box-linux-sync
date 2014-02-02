@@ -5,23 +5,26 @@
 #
 # Copyright (C) 2014 Vítor Brandão <vitor@noiselabs.org>
 #
-# box-linux-sync is free software; you can redistribute it  and/or modify it
-# under the terms of the GNU Lesser General Public License as published by the
-# Free Software Foundation; either version 3 of the License, or (at your option)
-# any later version.
+# box-linux-sync is free software; you can redistribute it  and/or modify
+# it under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
 #
-# box-linux-sync is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
-# details.
+# box-linux-sync is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with box-linux-sync; if not, see
-# <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with box-linux-sync; if not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
-from peewee import BlobField, Model, OperationalError, SqliteDatabase, TextField
+from peewee import (
+    BlobField, Model, OperationalError, SqliteDatabase, TextField
+    )
+
+__all__ = ('Config', 'DatabaseManager')
 
 _DB_MAPPINGS = {
     'config.db': {
@@ -30,13 +33,16 @@ _DB_MAPPINGS = {
     }
 }
 
+
 class BaseConfig(Model):
     class Meta:
         database = _DB_MAPPINGS['config.db']['db']
 
+
 class Config(BaseConfig):
     key = TextField(primary_key=True)
     value = BlobField()
+
 
 class DatabaseManager(object):
     def __init__(self, database_dir):
@@ -48,7 +54,8 @@ class DatabaseManager(object):
 
     def init(self, db_name):
         db_name = self._normalize_db_name(db_name)
-        _DB_MAPPINGS[db_name]['db'].init(os.path.join(self.database_dir, db_name))
+        _DB_MAPPINGS[db_name]['db'].init(os.path.join(self.database_dir,
+                                                      db_name))
         _DB_MAPPINGS[db_name]['db'].connect()
         os.chmod(_DB_MAPPINGS[db_name]['db'].database, 0600)
         for m in _DB_MAPPINGS[db_name]['models']:
@@ -80,5 +87,3 @@ class DatabaseManager(object):
 
     def _normalize_db_name(self, db_name):
         return db_name if db_name.endswith('.db') else db_name + '.db'
-
-

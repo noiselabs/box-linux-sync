@@ -23,7 +23,6 @@
 # Code in this module adapted from:
 # - nautilus-dropbox-1.6.0/dropbox-cli (Copyright Dropbox, Inc.)
 
-import locale
 import optparse
 import os
 import socket
@@ -31,56 +30,16 @@ import subprocess
 import sys
 import threading
 import time
-
 from contextlib import closing
-from posixpath import curdir, sep, pardir, join, abspath, commonprefix
 
-from noiselabs.boxsync.syncd.config import BoxSyncConfig
-from noiselabs.boxsync.syncd.daemon import SyncDaemon
+from .syncd.config import BoxSyncConfig
+from .syncd.daemon import SyncDaemon
 from .defaults import *
-from .logger import start_logger
+from .logger import Console
+from .util import *
 from tornado.ioloop import IOLoop
 
-
-enc = locale.getpreferredencoding()
-
-def methodcaller(name, *args, **kwargs):
-    def caller(obj):
-        return getattr(obj, name)(*args, **kwargs)
-    return caller
-
-def relpath(path, start=curdir):
-    """Return a relative version of a path"""
-
-    if not path:
-        raise ValueError("no path specified")
-
-    if type(start) is unicode:
-        start_list = unicode_abspath(start).split(sep)
-    else:
-        start_list = abspath(start).split(sep)
-
-    if type(path) is unicode:
-        path_list = unicode_abspath(path).split(sep)
-    else:
-        path_list = abspath(path).split(sep)
-
-    # Work out how much of the filepath is shared by start and path.
-    i = len(commonprefix([start_list, path_list]))
-
-    rel_list = [pardir] * (len(start_list)-i) + path_list[i:]
-    if not rel_list:
-        return curdir
-    return join(*rel_list)
-
-def console_print(st=u"", f=sys.stdout, linebreak=True):
-    global enc
-    assert type(st) is unicode
-    f.write(st.encode(enc))
-    if linebreak: f.write(os.linesep)
-
-def console_flush(f=sys.stdout):
-    f.flush()
+console = Console(ENCODING)
 
 def is_boxsync_running():
     pidfile = os.path.join(DEFAULT_BOXSYNC_DATA_PATH, 'boxsyncd.pid')
@@ -94,12 +53,6 @@ def is_boxsync_running():
         cmdline = ""
 
     return "boxsyncd" in cmdline
-
-def unicode_abspath(path):
-    global enc
-    assert type(path) is unicode
-    # shouldn't pass unicode to this craphead, it appends with os.getcwd() which is always a str
-    return os.path.abspath(path.encode(sys.getfilesystemencoding())).decode(sys.getfilesystemencoding())
 
 class CommandTicker(threading.Thread):
     def __init__(self):
@@ -245,7 +198,7 @@ def requires_boxsync_running(meth):
         if is_boxsync_running():
             return meth(*n, **kw)
         else:
-            console_print(u"BoxSync isn't running!")
+            console.write(u"BoxSync isn't running!")
     newmeth.func_name = meth.func_name
     newmeth.__doc__ = meth.__doc__
     return newmeth
@@ -299,7 +252,7 @@ def start_boxsync_debug():
 # Extracted and modified from os.cmd.Cmd
 def columnize(list, display_list=None, display_width=None):
     if not list:
-        console_print(u"<empty>")
+        console.write(u"<empty>")
         return
 
     non_unicode = [i for i in range(len(list)) if not (isinstance(list[i], unicode))]
@@ -313,7 +266,7 @@ def columnize(list, display_list=None, display_width=None):
             display_width = int(d[1])
         else:
             for item in list:
-                console_print(item)
+                console.write(item)
             return
 
     if not display_list:
@@ -321,7 +274,7 @@ def columnize(list, display_list=None, display_width=None):
 
     size = len(list)
     if size == 1:
-        console_print(display_list[0])
+        console.write(display_list[0])
         return
 
     for nrows in range(1, len(list)):
@@ -369,7 +322,7 @@ def columnize(list, display_list=None, display_width=None):
         line = u"  ".join(texts)
         lines.append(line)
     for line in lines:
-        console_print(line)
+        console.write(line)
 
 
 @command
@@ -385,7 +338,7 @@ options:
   -l --list  prints out information in a format similar to ls. works best when your console supports color :)
   -a --all   do not ignore entries starting with .
 """
-    global enc
+    global ENCODING
 
     oparser = optparse.OptionParser()
     oparser.add_option("-l", "--list", action="store_true", dest="list")
@@ -405,7 +358,7 @@ options:
 
                     for a in args:
                         try:
-                            (dirs if os.path.isdir(a) else nondirs).append(a.decode(enc))
+                            (dirs if os.path.isdir(a) else nondirs).append(a.decode(ENCODING))
                         except UnicodeDecodeError:
                             continue
 
@@ -493,47 +446,47 @@ options:
                             columnize(nondir_clean_paths, nondir_formatted_paths)
 
                         if len(nondirs) == 0:
-                            console_print(dirs[0] + u":")
+                            console.write(dirs[0] + u":")
                             print_directory(dirs[0])
                             dirs = dirs[1:]
 
                         for name in dirs:
-                            console_print()
-                            console_print(name + u":")
+                            console.write()
+                            console.write(name + u":")
                             print_directory(name)
 
                 except BoxSyncCommand.EOFError:
-                    console_print(u"BoxSync daemon stopped.")
+                    console.write(u"BoxSync daemon stopped.")
                 except BoxSyncCommand.BadConnectionError, e:
-                    console_print(u"BoxSync isn't responding!")
+                    console.write(u"BoxSync isn't responding!")
             else:
                 if len(args) == 0:
                     args = [name for name in sorted(os.listdir(u"."), key=methodcaller('lower')) if type(name) == unicode]
                 if len(args) == 0:
                     # Bail early if there's nothing to list to avoid crashing on indent below
-                    console_print(u"<empty>")
+                    console.write(u"<empty>")
                     return
                 indent = max(len(st)+1 for st in args)
                 for file in args:
 
                     try:
                         if type(file) is not unicode:
-                            file = file.decode(enc)
+                            file = file.decode(ENCODING)
                         fp = unicode_abspath(file)
                     except (UnicodeEncodeError, UnicodeDecodeError), e:
                         continue
                     if not os.path.exists(fp):
-                        console_print(u"%-*s %s" % \
+                        console.write(u"%-*s %s" % \
                                           (indent, file+':', "File doesn't exist"))
                         continue
 
                     try:
                         status = dc.icon_overlay_file_status(path=fp).get(u'status', [u'unknown'])[0]
-                        console_print(u"%-*s %s" % (indent, file+':', status))
+                        console.write(u"%-*s %s" % (indent, file+':', status))
                     except BoxSyncCommand.CommandError, e:
-                        console_print(u"%-*s %s" % (indent, file+':', e))
+                        console.write(u"%-*s %s" % (indent, file+':', e))
     except BoxSyncCommand.CouldntConnectError, e:
-        console_print(u"BoxSync isn't running!")
+        console.write(u"BoxSync isn't running!")
 
 @command
 @requires_boxsync_running
@@ -554,7 +507,7 @@ boxsync status
 Prints out the current status of the BoxSync daemon.
 """
     if len(args) != 0:
-        console_print(status.__doc__,linebreak=False)
+        console.write(status.__doc__,linebreak=False)
         return
 
     try:
@@ -562,20 +515,20 @@ Prints out the current status of the BoxSync daemon.
             try:
                 lines = dc.get_boxsync_status()[u'status']
                 if len(lines) == 0:
-                    console_print(u'Idle')
+                    console.write(u'Idle')
                 else:
                     for line in lines:
-                        console_print(line)
+                        console.write(line)
             except KeyError:
-                console_print(u"Couldn't get status: daemon isn't responding")
+                console.write(u"Couldn't get status: daemon isn't responding")
             except BoxSyncCommand.CommandError, e:
-                console_print(u"Couldn't get status: " + str(e))
+                console.write(u"Couldn't get status: " + str(e))
             except BoxSyncCommand.BadConnectionError, e:
-                console_print(u"BoxSync isn't responding!")
+                console.write(u"BoxSync isn't responding!")
             except BoxSyncCommand.EOFError:
-                console_print(u"BoxSync daemon stopped.")
+                console.write(u"BoxSync daemon stopped.")
     except BoxSyncCommand.CouldntConnectError, e:
-        console_print(u"BoxSync isn't running!")
+        console.write(u"BoxSync isn't running!")
 
 @command
 def running(argv):
@@ -599,15 +552,15 @@ Stops the boxsync daemon.
             try:
                 bsc.tray_action_hard_exit()
             except BoxSyncCommand.BadConnectionError, e:
-                console_print(u"BoxSync isn't responding!")
+                console.write(u"BoxSync isn't responding!")
             except BoxSyncCommand.EOFError:
-                console_print(u"BoxSync daemon stopped.")
+                console.write(u"BoxSync daemon stopped.")
     except BoxSyncCommand.CouldntConnectError, e:
         if is_boxsync_running():
             SyncDaemon(IOLoop.instance(), BoxSyncConfig()).stop()
-            console_print(u"BoxSync daemon stopped.")
+            console.write(u"BoxSync daemon stopped.")
         else:
-            console_print(u"BoxSync isn't running!")
+            console.write(u"BoxSync isn't running!")
 
 #returns true if link is necessary
 def grab_link_url_if_necessary():
@@ -616,18 +569,18 @@ def grab_link_url_if_necessary():
             try:
                 link_url = bsc.needs_link().get(u"link_url", None)
                 if link_url is not None:
-                    console_print(u"To link this computer to a Box account, visit the following url:\n%s" % link_url[0])
+                    console.write(u"To link this computer to a Box account, visit the following url:\n%s" % link_url[0])
                     return True
                 else:
                     return False
             except BoxSyncCommand.CommandError, e:
                 pass
             except BoxSyncCommand.BadConnectionError, e:
-                console_print(u"BoxSync isn't responding!")
+                console.write(u"BoxSync isn't responding!")
             except BoxSyncCommand.EOFError:
-                console_print(u"BoxSync daemon stopped.")
+                console.write(u"BoxSync daemon stopped.")
     except BoxSyncCommand.CouldntConnectError, e:
-        console_print(u"BoxSync isn't running!")
+        console.write(u"BoxSync isn't running!")
 
 @command
 @requires_boxsync_running
@@ -650,24 +603,24 @@ Any specified path must be within BoxSync.
                     lines = [relpath(path) for path in bsc.get_ignore_set()[u'ignore_set']]
                     lines.sort()
                     if len(lines) == 0:
-                        console_print(u'No directories are being ignored.')
+                        console.write(u'No directories are being ignored.')
                     else:
-                        console_print(u'Excluded: ')
+                        console.write(u'Excluded: ')
                         for line in lines:
-                            console_print(unicode(line))
+                            console.write(unicode(line))
                 except KeyError:
-                    console_print(u"Couldn't get ignore set: daemon isn't responding")
+                    console.write(u"Couldn't get ignore set: daemon isn't responding")
                 except BoxSyncCommand.CommandError, e:
                     if e.args[0].startswith(u"No command exists by that name"):
-                        console_print(u"This version of the client does not support this command.")
+                        console.write(u"This version of the client does not support this command.")
                     else:
-                        console_print(u"Couldn't get ignore set: " + str(e))
+                        console.write(u"Couldn't get ignore set: " + str(e))
                 except BoxSyncCommand.BadConnectionError, e:
-                    console_print(u"BoxSync isn't responding!")
+                    console.write(u"BoxSync isn't responding!")
                 except BoxSyncCommand.EOFError:
-                    console_print(u"BoxSync daemon stopped.")
+                    console.write(u"BoxSync daemon stopped.")
         except BoxSyncCommand.CouldntConnectError, e:
-            console_print(u"BoxSync isn't running!")
+            console.write(u"BoxSync isn't running!")
     elif len(args) == 1 and args[0] == u"list":
         exclude([])
     elif len(args) >= 2:
@@ -680,51 +633,51 @@ Any specified path must be within BoxSync.
                     try:
                         result = bsc.ignore_set_add(paths=absolute_paths)
                         if result[u"ignored"]:
-                            console_print(u"Excluded: ")
+                            console.write(u"Excluded: ")
                             lines = [relpath(path) for path in result[u"ignored"]]
                             for line in lines:
-                                console_print(unicode(line))
+                                console.write(unicode(line))
                     except KeyError:
-                        console_print(u"Couldn't add ignore path: daemon isn't responding")
+                        console.write(u"Couldn't add ignore path: daemon isn't responding")
                     except BoxSyncCommand.CommandError, e:
                         if e.args[0].startswith(u"No command exists by that name"):
-                            console_print(u"This version of the client does not support this command.")
+                            console.write(u"This version of the client does not support this command.")
                         else:
-                            console_print(u"Couldn't get ignore set: " + str(e))
+                            console.write(u"Couldn't get ignore set: " + str(e))
                     except BoxSyncCommand.BadConnectionError, e:
-                        console_print(u"BoxSync isn't responding! [%s]" % e)
+                        console.write(u"BoxSync isn't responding! [%s]" % e)
                     except BoxSyncCommand.EOFError:
-                        console_print(u"BoxSync daemon stopped.")
+                        console.write(u"BoxSync daemon stopped.")
             except BoxSyncCommand.CouldntConnectError, e:
-                console_print(u"BoxSync isn't running!")
+                console.write(u"BoxSync isn't running!")
         elif sub_command == u"remove":
             try:
                 with closing(BoxSyncCommand(timeout=None)) as bsc:
                     try:
                         result = bsc.ignore_set_remove(paths=absolute_paths)
                         if result[u"removed"]:
-                            console_print(u"No longer excluded: ")
+                            console.write(u"No longer excluded: ")
                             lines = [relpath(path) for path in result[u"removed"]]
                             for line in lines:
-                                console_print(unicode(line))
+                                console.write(unicode(line))
                     except KeyError:
-                        console_print(u"Couldn't remove ignore path: daemon isn't responding")
+                        console.write(u"Couldn't remove ignore path: daemon isn't responding")
                     except BoxSyncCommand.CommandError, e:
                         if e.args[0].startswith(u"No command exists by that name"):
-                            console_print(u"This version of the client does not support this command.")
+                            console.write(u"This version of the client does not support this command.")
                         else:
-                            console_print(u"Couldn't get ignore set: " + str(e))
+                            console.write(u"Couldn't get ignore set: " + str(e))
                     except BoxSyncCommand.BadConnectionError, e:
-                        console_print(u"BoxSync isn't responding! [%s]" % e)
+                        console.write(u"BoxSync isn't responding! [%s]" % e)
                     except BoxSyncCommand.EOFError:
-                        console_print(u"BoxSync daemon stopped.")
+                        console.write(u"BoxSync daemon stopped.")
             except BoxSyncCommand.CouldntConnectError, e:
-                console_print(u"BoxSync isn't running!")
+                console.write(u"BoxSync isn't running!")
         else:
-            console_print(exclude.__doc__, linebreak=False)
+            console.write(exclude.__doc__, linebreak=False)
             return
     else:
-        console_print(exclude.__doc__, linebreak=False)
+        console.write(exclude.__doc__, linebreak=False)
         return
 
 @command
@@ -738,18 +691,18 @@ Starts the boxsync daemon, boxsyncd. If boxsyncd is already running, this will d
     # first check if boxsync is already running
     if is_boxsync_running():
         if not grab_link_url_if_necessary():
-            console_print(u"BoxSync is already running!")
+            console.write(u"BoxSync is already running!")
         return
 
-    console_print(u"Starting BoxSync...", linebreak=False)
-    console_flush()
+    console.write(u"Starting BoxSync...", linebreak=False)
+    console.flush()
     if not start_boxsync():
-        console_print()
-        console_print(u"No good, boxsyncd failed to start.")
+        console.write()
+        console.write(u"No good, boxsyncd failed to start.")
         return
     else:
         if not grab_link_url_if_necessary():
-            console_print(u"Done!")
+            console.write(u"Done!")
 
 @command
 def debug(argv):
@@ -762,19 +715,19 @@ Starts the boxsync daemon in debug mode. Useful for troubleshooting and people w
     # first check if boxsync is already running
     if is_boxsync_running():
         if not grab_link_url_if_necessary():
-            console_print(u"BoxSync is already running!")
+            console.write(u"BoxSync is already running!")
         return
 
-    console_print(u"Starting BoxSync...", linebreak=False)
-    console_flush()
+    console.write(u"Starting BoxSync...", linebreak=False)
+    console.flush()
     if not start_boxsync_debug():
-        console_print()
-        console_print(u"The BoxSync daemon is not installed!")
-        console_print(u"Please install it using your favorite package manager")
+        console.write()
+        console.write(u"The BoxSync daemon is not installed!")
+        console.write(u"Please install it using your favorite package manager")
         return
     else:
         if not grab_link_url_if_necessary():
-            console_print(u"Done!")
+            console.write(u"Done!")
 
 @command
 def help(argv):
@@ -787,25 +740,25 @@ With no arguments, print a list of commands and a short description of each. Wit
         return usage(argv)
     for command in commands:
         if command == argv[0]:
-            console_print(commands[command].__doc__.split('\n', 1)[1].decode('ascii'))
+            console.write(commands[command].__doc__.split('\n', 1)[1].decode('ascii'))
             return
     for alias in aliases:
         if alias == argv[0]:
-            console_print(aliases[alias].__doc__.split('\n', 1)[1].decode('ascii'))
+            console.write(aliases[alias].__doc__.split('\n', 1)[1].decode('ascii'))
             return
-    console_print(u"unknown command '%s'" % argv[0], f=sys.stderr)
+    console.write(u"unknown command '%s'" % argv[0], f=sys.stderr)
 
 def usage(argv):
-    console_print(u"BoxSync command-line interface\n")
-    console_print(u"commands:\n")
-    console_print(u"Note: use boxsync help <command> to view usage for a specific command.\n")
+    console.write(u"BoxSync command-line interface\n")
+    console.write(u"commands:\n")
+    console.write(u"Note: use boxsync help <command> to view usage for a specific command.\n")
     out = []
     for command in commands:
         out.append((command, commands[command].__doc__.splitlines()[0]))
     spacing = max(len(o[0])+3 for o in out)
     for o in out:
-        console_print(" %-*s%s" % (spacing, o[0], o[1]))
-    console_print()
+        console.write(" %-*s%s" % (spacing, o[0], o[1]))
+    console.write()
 
 
 def boxsync_main(argv):
@@ -825,7 +778,7 @@ def boxsync_main(argv):
             cut = i
             break
 
-    if cut == None:
+    if cut is None:
         usage(argv)
         os._exit(0)
         return
@@ -833,8 +786,6 @@ def boxsync_main(argv):
     # lol no options for now
     globaloptionparser = optparse.OptionParser()
     globaloptionparser.parse_args(argv[0:i])
-
-    start_logger()
 
     # now dispatch and run
     result = None
@@ -844,7 +795,7 @@ def boxsync_main(argv):
         result = aliases[argv[i]](argv[i+1:])
 
     # flush, in case output is rerouted to a file.
-    console_flush()
+    console.flush()
 
     # done
     return result
