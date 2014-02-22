@@ -46,7 +46,7 @@ LOGGING_CONFIG = {
             'class':'logging.NullHandler',
         },
         'console':{
-            'level':'ERROR',
+            'level':'DEBUG',
             'class':'logging.StreamHandler',
             'formatter': 'simple'
         },

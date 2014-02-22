@@ -45,44 +45,53 @@ class Config(BaseConfig):
 
 
 class DatabaseManager(object):
-    def __init__(self, database_dir):
+    """Manages all BoxSync databases. Once you create an instance of this
+    class every database and table gets initialized. We may go for the
+    lazy-creation route by right now this is what you get. Enjoy.
+    """
+    def __init__(self, database_dir, cfg=None):
         self.database_dir = database_dir
+        self.cfg = _DB_MAPPINGS if cfg is None else cfg
         self.init_all()
 
     def get_connection(self, db_name):
-        return _DB_MAPPINGS[db_name]['db']
+        return self.cfg[db_name]['db']
+
+    def get_model(self, db_name, table):
+        db_name = self._normalize_db_name(db_name)
+        return getattr(sys.modules[__name__], self.cfg[db_name][table])
 
     def init(self, db_name):
         db_name = self._normalize_db_name(db_name)
-        _DB_MAPPINGS[db_name]['db'].init(os.path.join(self.database_dir,
+        self.cfg[db_name]['db'].init(os.path.join(self.database_dir,
                                                       db_name))
-        _DB_MAPPINGS[db_name]['db'].connect()
-        os.chmod(_DB_MAPPINGS[db_name]['db'].database, 0600)
-        for m in _DB_MAPPINGS[db_name]['models']:
+        self.cfg[db_name]['db'].connect()
+        os.chmod(self.cfg[db_name]['db'].database, 0600)
+        for m in self.cfg[db_name]['models']:
             try:
                 getattr(sys.modules[__name__], m).create_table(True)
             except OperationalError:
                 pass
 
     def init_all(self):
-        for k in _DB_MAPPINGS.iterkeys():
+        for k in self.cfg.iterkeys():
             self.init(k)
 
     def close(self, db_name):
         db_name = self._normalize_db_name(db_name)
-        _DB_MAPPINGS[db_name]['db'].close()
+        self.cfg[db_name]['db'].close()
 
     def close_all(self):
-        for k in _DB_MAPPINGS.itervalues():
+        for k in self.cfg.itervalues():
             self.close(k)
 
     def remove(self, db_name):
         db_name = self._normalize_db_name(db_name)
-        _DB_MAPPINGS[db_name]['db'].close()
-        os.remove(_DB_MAPPINGS[db_name]['db'].database)
+        self.cfg[db_name]['db'].close()
+        os.remove(self.cfg[db_name]['db'].database)
 
     def remove_all(self):
-        for k in _DB_MAPPINGS.itervalues():
+        for k in self.cfg.itervalues():
             self.remove(k)
 
     def _normalize_db_name(self, db_name):

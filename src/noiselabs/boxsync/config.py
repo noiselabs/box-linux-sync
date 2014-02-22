@@ -20,6 +20,7 @@
 
 __all__ = ('ConfigDict')
 
+from .db import Config
 
 class ConfigDict(dict):
     """A class that simulates a dictionary, containing user settings fetched
@@ -36,3 +37,24 @@ class ConfigDict(dict):
         ..note: The database should be fully initialized before calling
         __init__().
         """
+        self.model = model
+        dict.__init__(self)
+
+    def __getitem__(self, key):
+        return dict.__getitem__(self, key)
+
+    def __setitem__(self, key, value):
+        self.model._meta.fields[key] = value
+        dict.__setitem__(self, key, value)
+
+
+    def import_from_database(self):
+        pass
+
+
+
+def load_box_config(box_path):
+    config = ConfigDict(Config)
+    config['box_path'] = box_path
+
+    return config

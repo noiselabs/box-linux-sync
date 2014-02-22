@@ -22,7 +22,7 @@
 import getopt
 import sys
 
-from .config import ConfigDict
+from .config import load_box_config
 from .db import DatabaseManager
 from .defaults import *
 from .logger import GlobalLogger
@@ -34,6 +34,7 @@ class BoxSyncd(object):
 
     def __init__(self, argv):
         self.argv = list([arg.decode('utf-8') for arg in argv])
+        self.dbm = None
         self.config = None
         self.boxsync_data_path = DEFAULT_BOXSYNC_DATA_PATH
         self.debug = False
@@ -65,11 +66,19 @@ class BoxSyncd(object):
         # Create the boxsync data dir
         self.fs.makedirs(self.boxsync_data_path, 448)
 
+        # Create an instance of DatabaseManager and load the configuration
+        self.logger.debug('Initializing databases...')
+        self.dbm = DatabaseManager(self.boxsync_data_path)
+        self.logger.debug('Loading config...')
+        self.config = load_box_config(self.default_box_path)
+        self.logger.debug('Box path: %s' % self.get_box_path())
+
 
     def _parse_command_line(self):
         log_msg = []
         log_msg.append('Command line: %r' % self.argv)
-        flags, self.argv = partition(lambda arg: arg.startswith('--'), self.argv)
+        flags, self.argv = partition(lambda arg: arg.startswith('--'),
+                                     self.argv)
         log_msg.append('Command flags: %r' % flags)
         optlist, remaining = getopt.getopt(flags, '', [
             'debug',

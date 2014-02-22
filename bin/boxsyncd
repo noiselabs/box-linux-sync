@@ -23,8 +23,6 @@ import platform
 import signal
 import sys
 
-from tornado.ioloop import IOLoop
-
 # This block ensures that ^C interrupts are handled quietly. We handle
 # KeyboardInterrupt instead of installing a SIGINT handler, since
 # exiting from signal handlers intermittently causes python to ignore
@@ -52,40 +50,14 @@ try:
     signal.signal(debug_signum, debug_signal)
 
     try:
-        from noiselabs.boxsync.syncd.daemon import SyncDaemon
-        from noiselabs.boxsync.syncd.config import BoxSyncConfig
+        from noiselabs.boxsync.boxsyncd import main as boxsyncd_main
     except ImportError:
         from os import path as osp
         sys.path.insert(0, osp.join(osp.dirname(osp.dirname(osp.realpath(__file__))), 'src'))
-        from noiselabs.boxsync.syncd.daemon import SyncDaemon
-        from noiselabs.boxsync.syncd.config import BoxSyncConfig
+        from noiselabs.boxsync.boxsyncd import main as boxsyncd_main
 
     if __name__ == "__main__":
-        ioloop = IOLoop.instance()
-        cfg = BoxSyncConfig()
-        syncd = SyncDaemon(ioloop, cfg)
-
-        try:
-            if len(sys.argv) > 1:
-                if sys.argv[1] in ['start', 'stop']:
-                    method = sys.argv[1]
-                elif 'debug' == sys.argv[1]:
-                    method = 'run'
-                else:
-                    method = 'start'
-            else:
-                method = 'start'
-            ret = getattr(syncd, method)()
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception:
-            import traceback
-            tb_str = traceback.format_exc()
-            sys.stderr.write(tb_str)
-            sys.exit(1)
-
-        if ret is not None:
-            sys.exit(ret)
+        boxsyncd_main()
 
 except KeyboardInterrupt:
         sys.stderr.write("\n\nExiting on signal %(signal)s\n" %
