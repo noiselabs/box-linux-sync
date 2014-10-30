@@ -22,9 +22,11 @@
 import logging.config
 import os
 import sys
-from .defaults import DEFAULT_LOG_PATH, ENCODING
+from .defaults import *
 
-__all__ = ('Console', 'GlobalLogger')
+__all__ = [
+    'Console', 'GlobalLogger', 'get_logger'
+]
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -60,12 +62,12 @@ LOGGING_CONFIG = {
         }
     },
     'loggers': {
-        'boxsync': {
+        BOXSYNC_BIN: {
             'handlers': ['console', 'file'],
             'level': 'ERROR',
             'propagate': True,
         },
-        'boxsyncd': {
+        BOXSYNCD_BIN: {
             'handlers': ['console', 'file'],
             'level': 'ERROR',
             'propagate': True,
@@ -110,7 +112,7 @@ class GlobalLogger(object):
     def setup(self, config):
         logging.config.dictConfig(config)
 
-    def getLogger(self, name='boxsyncd'):
+    def getLogger(self, name=BOXSYNCD_BIN):
         return logging.getLogger(name)
 
     def setLevel(self, level, name=None):
@@ -121,3 +123,6 @@ class GlobalLogger(object):
         else:
             self.config['loggers'][name]['level'] = level
             logging.getLogger(name).setLevel(level)
+
+def get_logger(self, name=BOXSYNCD_BIN):
+        return logging.getLogger(name)

@@ -42,7 +42,7 @@ from tornado.ioloop import IOLoop
 console = Console(ENCODING)
 
 def is_boxsync_running():
-    pidfile = os.path.join(DEFAULT_BOXSYNC_DATA_PATH, 'boxsyncd.pid')
+    pidfile = os.path.join(DEFAULT_BOXSYNC_DATA_PATH, '%s.pid' % BOXSYNCD_BIN)
 
     try:
         with open(pidfile, "r") as f:
@@ -52,7 +52,7 @@ def is_boxsync_running():
     except:
         cmdline = ""
 
-    return "boxsyncd" in cmdline
+    return BOXSYNCD_BIN in cmdline
 
 class CommandTicker(threading.Thread):
     def __init__(self):
@@ -198,7 +198,7 @@ def requires_boxsync_running(meth):
         if is_boxsync_running():
             return meth(*n, **kw)
         else:
-            console.write(u"BoxSync isn't running!")
+            console.write(u"%s isn't running!" % BOXSYNC)
     newmeth.func_name = meth.func_name
     newmeth.__doc__ = meth.__doc__
     return newmeth
@@ -217,14 +217,12 @@ def get_boxsyncd_path():
     return bs_path
 
 def start_boxsync():
-    bs_path = get_boxsyncd_path()
-    if os.access(bs_path, os.X_OK):
+    bsd_path = get_boxsyncd_path()
+    if os.access(bsd_path, os.X_OK):
         f = open("/dev/null", "w")
-        from .boxsyncd import main
-        main()
-        return True
         # we don't reap the child because we're gonna die anyway, let init do it
-        a = subprocess.Popen([bs_path], preexec_fn=os.setsid, cwd=os.path.expanduser("~"),
+        a = subprocess.Popen([bsd_path], preexec_fn=os.setsid, cwd=os.path
+                             .expanduser("~"),
                              stderr=sys.stderr, stdout=f, close_fds=True)
 
     # in seconds
@@ -239,14 +237,12 @@ def start_boxsync():
         return False
 
 def start_boxsync_debug():
-    ioloop = IOLoop.instance()
-    cfg = BoxSyncConfig()
-    syncd = SyncDaemon(ioloop, cfg)
-
-    #client = BoxClient(ioloop, cfg, bc)
-    #client.authenticate()
-
-    syncd.run()
+    if '--debug' not in sys.argv:
+        sys.argv.append('--debug')
+        print(sys.argv)
+    from .boxsyncd import main
+    main()
+    return True
 
 
 # Extracted and modified from os.cmd.Cmd
@@ -456,9 +452,9 @@ options:
                             print_directory(name)
 
                 except BoxSyncCommand.EOFError:
-                    console.write(u"BoxSync daemon stopped.")
+                    console.write(u"%s daemon stopped." % BOXSYNC)
                 except BoxSyncCommand.BadConnectionError, e:
-                    console.write(u"BoxSync isn't responding!")
+                    console.write(u"%s isn't responding!" % BOXSYNC)
             else:
                 if len(args) == 0:
                     args = [name for name in sorted(os.listdir(u"."), key=methodcaller('lower')) if type(name) == unicode]
@@ -477,7 +473,7 @@ options:
                         continue
                     if not os.path.exists(fp):
                         console.write(u"%-*s %s" % \
-                                          (indent, file+':', "File doesn't exist"))
+                            (indent, file+':', "File doesn't exist"))
                         continue
 
                     try:
@@ -486,7 +482,7 @@ options:
                     except BoxSyncCommand.CommandError, e:
                         console.write(u"%-*s %s" % (indent, file+':', e))
     except BoxSyncCommand.CouldntConnectError, e:
-        console.write(u"BoxSync isn't running!")
+        console.write(u"%s isn't running!" % BOXSYNC)
 
 @command
 @requires_boxsync_running
@@ -524,11 +520,11 @@ Prints out the current status of the BoxSync daemon.
             except BoxSyncCommand.CommandError, e:
                 console.write(u"Couldn't get status: " + str(e))
             except BoxSyncCommand.BadConnectionError, e:
-                console.write(u"BoxSync isn't responding!")
+                console.write(u"%s isn't responding!" % BOXSYNC)
             except BoxSyncCommand.EOFError:
-                console.write(u"BoxSync daemon stopped.")
+                console.write(u"%s daemon stopped." % BOXSYNC)
     except BoxSyncCommand.CouldntConnectError, e:
-        console.write(u"BoxSync isn't running!")
+        console.write(u"%s isn't running!" % BOXSYNC)
 
 @command
 def running(argv):
@@ -552,15 +548,15 @@ Stops the boxsync daemon.
             try:
                 bsc.tray_action_hard_exit()
             except BoxSyncCommand.BadConnectionError, e:
-                console.write(u"BoxSync isn't responding!")
+                console.write(u"%s isn't responding!" % BOXSYNC)
             except BoxSyncCommand.EOFError:
-                console.write(u"BoxSync daemon stopped.")
+                console.write(u"%s daemon stopped." % BOXSYNC)
     except BoxSyncCommand.CouldntConnectError, e:
         if is_boxsync_running():
             SyncDaemon(IOLoop.instance(), BoxSyncConfig()).stop()
-            console.write(u"BoxSync daemon stopped.")
+            console.write(u"%s daemon stopped." % BOXSYNC)
         else:
-            console.write(u"BoxSync isn't running!")
+            console.write(u"%s isn't running!" % BOXSYNC)
 
 #returns true if link is necessary
 def grab_link_url_if_necessary():
@@ -576,11 +572,11 @@ def grab_link_url_if_necessary():
             except BoxSyncCommand.CommandError, e:
                 pass
             except BoxSyncCommand.BadConnectionError, e:
-                console.write(u"BoxSync isn't responding!")
+                console.write(u"%s isn't responding!" % BOXSYNC)
             except BoxSyncCommand.EOFError:
-                console.write(u"BoxSync daemon stopped.")
+                console.write(u"%s daemon stopped." % BOXSYNC)
     except BoxSyncCommand.CouldntConnectError, e:
-        console.write(u"BoxSync isn't running!")
+        console.write(u"%s isn't running!" % BOXSYNC)
 
 @command
 @requires_boxsync_running
@@ -616,9 +612,9 @@ Any specified path must be within BoxSync.
                     else:
                         console.write(u"Couldn't get ignore set: " + str(e))
                 except BoxSyncCommand.BadConnectionError, e:
-                    console.write(u"BoxSync isn't responding!")
+                    console.write(u"%s isn't responding!" % BOXSYNC)
                 except BoxSyncCommand.EOFError:
-                    console.write(u"BoxSync daemon stopped.")
+                    console.write(u"%s daemon stopped." % BOXSYNC)
         except BoxSyncCommand.CouldntConnectError, e:
             console.write(u"BoxSync isn't running!")
     elif len(args) == 1 and args[0] == u"list":
@@ -645,11 +641,12 @@ Any specified path must be within BoxSync.
                         else:
                             console.write(u"Couldn't get ignore set: " + str(e))
                     except BoxSyncCommand.BadConnectionError, e:
-                        console.write(u"BoxSync isn't responding! [%s]" % e)
+                        console.write(u"%s isn't responding! [%s]" % (
+                            BOXSYNC, e))
                     except BoxSyncCommand.EOFError:
-                        console.write(u"BoxSync daemon stopped.")
+                        console.write(u"%s daemon stopped." % BOXSYNC)
             except BoxSyncCommand.CouldntConnectError, e:
-                console.write(u"BoxSync isn't running!")
+                console.write(u"%s isn't running!" % BOXSYNC)
         elif sub_command == u"remove":
             try:
                 with closing(BoxSyncCommand(timeout=None)) as bsc:
@@ -668,11 +665,12 @@ Any specified path must be within BoxSync.
                         else:
                             console.write(u"Couldn't get ignore set: " + str(e))
                     except BoxSyncCommand.BadConnectionError, e:
-                        console.write(u"BoxSync isn't responding! [%s]" % e)
+                        console.write(u"%s isn't responding! [%s]" % (
+                            BOXSYNC, e))
                     except BoxSyncCommand.EOFError:
-                        console.write(u"BoxSync daemon stopped.")
+                        console.write(u"%s daemon stopped." % BOXSYNC)
             except BoxSyncCommand.CouldntConnectError, e:
-                console.write(u"BoxSync isn't running!")
+                console.write(u"%s isn't running!" % BOXSYNC)
         else:
             console.write(exclude.__doc__, linebreak=False)
             return
@@ -691,14 +689,14 @@ Starts the boxsync daemon, boxsyncd. If boxsyncd is already running, this will d
     # first check if boxsync is already running
     if is_boxsync_running():
         if not grab_link_url_if_necessary():
-            console.write(u"BoxSync is already running!")
+            console.write(u"%s is already running!" % BOXSYNC)
         return
 
-    console.write(u"Starting BoxSync...", linebreak=False)
+    console.write(u"Starting %s..." % BOXSYNC, linebreak=False)
     console.flush()
     if not start_boxsync():
         console.write()
-        console.write(u"No good, boxsyncd failed to start.")
+        console.write(u"No good, %s failed to start." % BOXSYNCD_BIN)
         return
     else:
         if not grab_link_url_if_necessary():
@@ -715,14 +713,14 @@ Starts the boxsync daemon in debug mode. Useful for troubleshooting and people w
     # first check if boxsync is already running
     if is_boxsync_running():
         if not grab_link_url_if_necessary():
-            console.write(u"BoxSync is already running!")
+            console.write(u"%s is already running!" % BOXSYNC)
         return
 
-    console.write(u"Starting BoxSync...", linebreak=False)
+    console.write(u"Starting %s..." % BOXSYNC, linebreak=False)
     console.flush()
     if not start_boxsync_debug():
         console.write()
-        console.write(u"The BoxSync daemon is not installed!")
+        console.write(u"The %s daemon is not installed!" % BOXSYNC)
         console.write(u"Please install it using your favorite package manager")
         return
     else:
@@ -749,9 +747,10 @@ With no arguments, print a list of commands and a short description of each. Wit
     console.write(u"unknown command '%s'" % argv[0], f=sys.stderr)
 
 def usage(argv):
-    console.write(u"BoxSync command-line interface\n")
+    console.write(u"%s command-line interface\n" % BOXSYNC)
     console.write(u"commands:\n")
-    console.write(u"Note: use boxsync help <command> to view usage for a specific command.\n")
+    console.write(u"Note: use %s help <command> to view usage for a specific "
+                  u"command.\n" % BOXSYNC_BIN)
     out = []
     for command in commands:
         out.append((command, commands[command].__doc__.splitlines()[0]))

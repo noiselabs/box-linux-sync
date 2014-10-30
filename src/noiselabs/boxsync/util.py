@@ -23,6 +23,7 @@ import itertools
 import os
 from posixpath import curdir, sep, pardir, join, abspath, commonprefix
 import sys
+import zlib
 
 
 def methodcaller(name, *args, **kwargs):
@@ -71,6 +72,12 @@ def relpath(path, start=curdir):
         return curdir
     return join(*rel_list)
 
+
+def print_logo():
+    art = "eJxtTUEKwDAMuucVXgcDPzD2kkI+kscv1pbtMFOCMcYGGtnAFxIymrApDu" \
+        "/1UkJyjrnk5Z1W91EoJoco4TLXcWhO7n4D19Rf2dWpnOEK0qesLG7htNlLBv5hezx0GzWw"
+
+    print zlib.decompress(art.decode('base64'))
 
 class FilesystemUtils(object):
     def makedirs(self, path, mode=None, override=True):

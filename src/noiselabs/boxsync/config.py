@@ -18,9 +18,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with box-linux-sync; if not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ('ConfigDict')
-
 from .db import Config
+
+__all__ = [
+    'ConfigDict'
+]
+
 
 class ConfigDict(dict):
     """A class that simulates a dictionary, containing user settings fetched
@@ -50,7 +53,6 @@ class ConfigDict(dict):
 
     def import_from_database(self):
         pass
-
 
 
 def load_box_config(box_path):
