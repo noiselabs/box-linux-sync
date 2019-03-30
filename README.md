@@ -6,6 +6,15 @@ An unofficial attempt to create a Linux synchronization client because Box.com d
 NOTICE
 ------
 
+<strong>MUST READ: DEPRECATION WEB DAV SUPPORT JANUARY 31, 2019</strong>
+
+If you are connecting to Box using a WebDAV client, you will see connection errors and will no longer be able to view or access your content on Box through your WebDAV client.
+Box recommends that customers currently using WebDAV migrate to an alternative Box tool at their earliest convenience. 
+
+For more information please visit: http://bit.ly/WebDavBoxDeprecated2019 and for more information on current status: http://bit.ly/BOXwebdav2019
+
+------
+
 If your Box sync stopped working please open your `/etc/fstab` file and update the WebDav URL from `https://www.box.com/dav` to `https://dav.box.com/dav`.
 
 [Box.com blog post](https://support.box.com/entries/28641946-Features-to-be-removed-in-Q4-2013):
